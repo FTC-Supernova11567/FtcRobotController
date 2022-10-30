@@ -52,24 +52,12 @@ android {
     }
 
     defaultConfig {
-        signingConfig signingConfigs.debug
+        //signingConfig signingConfigs.debug
         applicationId 'com.qualcomm.ftcrobotcontroller'
-        minSdkVersion 23
+        minSdkVersion 24
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 28
 
-        /**
-         * We keep the versionCode and versionName of robot controller applications in sync with
-         * the master information published in the AndroidManifest.xml file of the FtcRobotController
-         * module. This helps avoid confusion that might arise from having multiple versions of
-         * a robot controller app simultaneously installed on a robot controller device.
-         *
-         * We accomplish this with the help of a funky little Groovy script that maintains that
-         * correspondence automatically.
-         *
-         * @see <a href="http://developer.android.com/tools/building/configuring-gradle.html">Configure Your Build</a>
-         * @see <a href="http://developer.android.com/tools/publishing/versioning.html">Versioning Your App</a>
-         */
         def manifestFile = project(':FtcRobotController').file('src/main/AndroidManifest.xml');
         def manifestText = manifestFile.getText()
         //
@@ -85,6 +73,7 @@ android {
         //
         versionCode vCode
         versionName vName
+        multiDexEnabled true
     }
 
     // Advanced user code might just want to use Vuforia directly, so we set up the libs as needed
@@ -122,8 +111,10 @@ android {
 }
 
 repositories {
+    mavenCentral()
     flatDir {
         dirs rootProject.file('libs')
+        mavenCentral()
     }
 }
 
