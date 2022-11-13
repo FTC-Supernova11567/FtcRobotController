@@ -29,12 +29,15 @@
 
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
+import com.arcrobotics.ftclib.geometry.Translation2d;
+import com.arcrobotics.ftclib.kinematics.wpilibkinematics.ChassisSpeeds;
+import com.arcrobotics.ftclib.kinematics.wpilibkinematics.MecanumDriveKinematics;
+import com.arcrobotics.ftclib.kinematics.wpilibkinematics.MecanumDriveWheelSpeeds;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -42,22 +45,32 @@ import com.qualcomm.robotcore.util.Range;
  * The names of OpModes appear on the menu of the FTC Driver Station.
  * When a selection is made from the menu, the corresponding OpMode
  * class is instantiated on the Robot Controller and executed.
- *
+ * <p>
  * This particular OpMode just executes a basic Tank Drive Teleop for a two wheeled robot
  * It includes all the skeletal structure that all iterative OpModes contain.
- *
+ * <p>
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Basic: Iterative OpMode", group="Iterative Opmode")
+@TeleOp(name = "Basic: Iterative OpMode", group = "Iterative OpMode")
 @Disabled
-public class BasicOpMode_Iterative extends OpMode
-{
+public class BasicOpMode_Iterative extends OpMode {
     // Declare OpMode members.
-    private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
+    private final ElapsedTime runtime = new ElapsedTime();
+    private DcMotor leftTop = null;
+    private DcMotor rightTop = null;
+    private DcMotor leftBottom = null;
+    private DcMotor rightBottom = null;
+
+    private final MecanumDriveKinematics kinematics = new MecanumDriveKinematics(
+            new Translation2d(11, 14.25),
+            new Translation2d(11, -14.25),
+            new Translation2d(-11, 14.25),
+            new Translation2d(-11, -14.25)
+
+
+    );
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -69,14 +82,20 @@ public class BasicOpMode_Iterative extends OpMode
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+        leftTop = hardwareMap.get(DcMotor.class, "leftTop");
+        rightTop = hardwareMap.get(DcMotor.class, "rightTop");
+        leftBottom = hardwareMap.get(DcMotor.class, "leftBottom");
+        rightBottom = hardwareMap.get(DcMotor.class, "rightBottom");
+
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftTop.setDirection(DcMotor.Direction.REVERSE);
+        rightTop.setDirection(DcMotor.Direction.FORWARD);
+        leftBottom.setDirection(DcMotor.Direction.REVERSE);
+        rightBottom.setDirection(DcMotor.Direction.FORWARD);
+
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
@@ -102,19 +121,15 @@ public class BasicOpMode_Iterative extends OpMode
      */
     @Override
     public void loop() {
-        // Setup a variable for each drive wheel to save power level for telemetry
-        double leftPower;
-        double rightPower;
-
         // Choose to drive using either Tank Mode, or POV Mode
         // Comment out the method that's not used.  The default below is POV.
 
         // POV Mode uses left stick to go forward, and right stick to turn.
         // - This uses basic math to combine motions and is easier to drive straight.
-        double drive = -gamepad1.left_stick_y;
-        double turn  =  gamepad1.right_stick_x;
-        leftPower    = Range.clip(drive + turn, -1.0, 1.0) ;
-        rightPower   = Range.clip(drive - turn, -1.0, 1.0) ;
+        double vertical = -gamepad1.left_stick_y;
+        double horizontal = gamepad1.left_stick_x;
+        double pivot = gamepad1.right_stick_x;
+        MecanumDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(new ChassisSpeeds(vertical, horizontal, pivot));
 
         // Tank Mode uses one stick to control each wheel.
         // - This requires no math, but it is hard to drive forward slowly and keep straight.
@@ -122,12 +137,18 @@ public class BasicOpMode_Iterative extends OpMode
         // rightPower = -gamepad1.right_stick_y ;
 
         // Send calculated power to wheels
-        leftDrive.setPower(leftPower);
-        rightDrive.setPower(rightPower);
+        leftTop.setPower(wheelSpeeds.frontLeftMetersPerSecond);
+        rightTop.setPower(wheelSpeeds.frontRightMetersPerSecond);
+        leftBottom.setPower(wheelSpeeds.rearLeftMetersPerSecond);
+        rightBottom.setPower(wheelSpeeds.rearRightMetersPerSecond);
 
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+        telemetry.addData("Motors", "left top (%.2f), right top(%.2f), left bottom(%.2f), right bottom(%.2f)",
+                wheelSpeeds.frontLeftMetersPerSecond,
+                wheelSpeeds.frontRightMetersPerSecond,
+                wheelSpeeds.rearLeftMetersPerSecond,
+                wheelSpeeds.rearRightMetersPerSecond);
     }
 
     /*
