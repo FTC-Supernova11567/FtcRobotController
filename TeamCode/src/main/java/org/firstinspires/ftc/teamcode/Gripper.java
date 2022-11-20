@@ -3,8 +3,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class Gripper {
     private Servo servo;
-    private double OPENANGLE = 46;
-    private double CLOSEANGLE = 2;
+    private final double OPENANGLE = 46;
+    private final double CLOSEANGLE = 2;
 
     public Gripper(Servo servo){
         this.servo = servo;

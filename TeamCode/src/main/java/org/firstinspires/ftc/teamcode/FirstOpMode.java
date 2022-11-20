@@ -31,6 +31,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.arcrobotics.ftclib.geometry.Translation2d;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.ChassisSpeeds;
+import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.MecanumDriveKinematics;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.MecanumDriveWheelSpeeds;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -62,7 +63,7 @@ public class FirstOpMode extends OpMode {
     private DcMotor rightTop = null;
     private DcMotor leftBottom = null;
     private DcMotor rightBottom = null;
-
+    private Drive drive = null;
     private final MecanumDriveKinematics kinematics = new MecanumDriveKinematics(
             new Translation2d(11, 14.25),
             new Translation2d(11, -14.25),
@@ -87,6 +88,8 @@ public class FirstOpMode extends OpMode {
         leftBottom = hardwareMap.get(DcMotor.class, "leftBottom");
         rightBottom = hardwareMap.get(DcMotor.class, "rightBottom");
 
+
+        Drive drive = new Drive(leftTop, rightTop, leftBottom, rightBottom);
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
@@ -121,34 +124,14 @@ public class FirstOpMode extends OpMode {
      */
     @Override
     public void loop() {
+
         // Choose to drive using either Tank Mode, or POV Mode
         // Comment out the method that's not used.  The default below is POV.
-
+        drive.go(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
         // POV Mode uses left stick to go forward, and right stick to turn.
         // - This uses basic math to combine motions and is easier to drive straight.
-        double vertical = -gamepad1.left_stick_y;
-        double horizontal = gamepad1.left_stick_x;
-        double pivot = gamepad1.right_stick_x;
-        MecanumDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(new ChassisSpeeds(vertical, horizontal, pivot));
 
-        // Tank Mode uses one stick to control each wheel.
-        // - This requires no math, but it is hard to drive forward slowly and keep straight.
-        // leftPower  = -gamepad1.left_stick_y ;
-        // rightPower = -gamepad1.right_stick_y ;
 
-        // Send calculated power to wheels
-        leftTop.setPower(wheelSpeeds.frontLeftMetersPerSecond);
-        rightTop.setPower(wheelSpeeds.frontRightMetersPerSecond);
-        leftBottom.setPower(wheelSpeeds.rearLeftMetersPerSecond);
-        rightBottom.setPower(wheelSpeeds.rearRightMetersPerSecond);
-
-        // Show the elapsed game time and wheel power.
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("Motors", "left top (%.2f), right top(%.2f), left bottom(%.2f), right bottom(%.2f)",
-                wheelSpeeds.frontLeftMetersPerSecond,
-                wheelSpeeds.frontRightMetersPerSecond,
-                wheelSpeeds.rearLeftMetersPerSecond,
-                wheelSpeeds.rearRightMetersPerSecond);
     }
 
     /*
