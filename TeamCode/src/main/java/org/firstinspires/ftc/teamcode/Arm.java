@@ -1,45 +1,46 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class Arm {
     private DcMotor Arm_Motor = null;
+    private int[] ticksarray = {0, 1000, 2000, 3000}; //Needs configuration according to encoder ticks
 
     //PID Var
     double integralSum = 0;
     double Kp = 0;
     double Ki = 0;
     double Kd = 0;
+    private int state = 0;
 
     ElapsedTime timer = new ElapsedTime();
     private  double lastError = 0;
-
-    //Number of ticks to the pillars
-    private final int Pillar1 = 1000;
-    private final int Pillar2 = 2000;
-    private final int Pillar3 = 3000;
 
     public Arm(DcMotor arm_Motor) {
         Arm_Motor = arm_Motor;
     }
 
-
-
-    public void Cone1(){
-        Arm_Motor.setPower(PIDController(Pillar1, Arm_Motor.getCurrentPosition()));
+    public void update() {
+        // if motor not close enough to set point then:
+        if (lastError < 3) {//Configure
+            Arm_Motor.setPower(PIDController(ticksarray[state], Arm_Motor.getCurrentPosition()));
+        }
     }
-    public void Cone2(){
-        Arm_Motor.setPower(PIDController(Pillar2, Arm_Motor.getCurrentPosition()));
+    public void StateUp(){
+        if (state < 3){
+            state++;
+        }
     }
-    public void Cone3(){
-        Arm_Motor.setPower(PIDController(Pillar3, Arm_Motor.getCurrentPosition()));
+    public void StateDown(){
+        if (state > 0){
+            state--;
+        }
     }
 
-
-
-
-    private double PIDController(double reference, double state){
+    public double PIDController(double reference, double state){
         double error = reference - state;
         integralSum += error + timer.seconds();
         double derivative = (error - lastError) / timer.seconds();
@@ -48,6 +49,6 @@ public class Arm {
         timer.reset();
 
         double output = (error * Kp) + (derivative * Kd) + (integralSum * Ki);
-        return  output;
+        return output;
     }
 }

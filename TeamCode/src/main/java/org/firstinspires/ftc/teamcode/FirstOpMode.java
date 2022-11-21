@@ -63,14 +63,15 @@ public class FirstOpMode extends OpMode {
     private DcMotor rightTop = null;
     private DcMotor leftBottom = null;
     private DcMotor rightBottom = null;
+    private DcMotor arm_Motor = null;
+
     private Drive drive = null;
+    private Arm arm = null;
     private final MecanumDriveKinematics kinematics = new MecanumDriveKinematics(
             new Translation2d(11, 14.25),
             new Translation2d(11, -14.25),
             new Translation2d(-11, 14.25),
             new Translation2d(-11, -14.25)
-
-
     );
 
     /*
@@ -87,9 +88,11 @@ public class FirstOpMode extends OpMode {
         rightTop = hardwareMap.get(DcMotor.class, "rightTop");
         leftBottom = hardwareMap.get(DcMotor.class, "leftBottom");
         rightBottom = hardwareMap.get(DcMotor.class, "rightBottom");
+        arm_Motor = hardwareMap.get(DcMotor.class, "Arm_Motor");
 
 
         Drive drive = new Drive(leftTop, rightTop, leftBottom, rightBottom);
+        Arm arm = new Arm(arm_Motor);
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
@@ -128,10 +131,17 @@ public class FirstOpMode extends OpMode {
         // Choose to drive using either Tank Mode, or POV Mode
         // Comment out the method that's not used.  The default below is POV.
         drive.go(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
+        arm.update();
         // POV Mode uses left stick to go forward, and right stick to turn.
         // - This uses basic math to combine motions and is easier to drive straight.
 
-
+        //Arm PID
+        if (gamepad1.y){
+            arm.StateUp();
+        }
+        if (gamepad1.a){
+            arm.StateDown();
+        }
     }
 
     /*
