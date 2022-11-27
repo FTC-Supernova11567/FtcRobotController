@@ -30,6 +30,8 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.arcrobotics.ftclib.geometry.Translation2d;
+import com.arcrobotics.ftclib.hardware.motors.Motor;
+import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.ChassisSpeeds;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.MecanumDriveKinematics;
@@ -38,6 +40,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorController;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
@@ -64,9 +69,12 @@ public class FirstOpMode extends OpMode {
     private DcMotor leftBottom = null;
     private DcMotor rightBottom = null;
     private DcMotor arm_Motor = null;
+    private Servo gripper_servo = null;
+    private boolean isgripperopen = false;
 
     private Drive drive = null;
     private Arm arm = null;
+    private Gripper gripper = null;
     private final MecanumDriveKinematics kinematics = new MecanumDriveKinematics(
             new Translation2d(11, 14.25),
             new Translation2d(11, -14.25),
@@ -80,7 +88,6 @@ public class FirstOpMode extends OpMode {
     @Override
     public void init() {
         telemetry.addData("Status", "Initialized");
-
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
@@ -89,10 +96,11 @@ public class FirstOpMode extends OpMode {
         leftBottom = hardwareMap.get(DcMotor.class, "leftBottom");
         rightBottom = hardwareMap.get(DcMotor.class, "rightBottom");
         arm_Motor = hardwareMap.get(DcMotor.class, "Arm_Motor");
+        gripper_servo = hardwareMap.get(Servo.class, "GripperServo");
 
-
-        Drive drive = new Drive(leftTop, rightTop, leftBottom, rightBottom);
+        Drive drive = new Drive((DcMotorEx) leftTop, (DcMotorEx) rightTop, (DcMotorEx) leftBottom, (DcMotorEx) rightBottom);
         Arm arm = new Arm(arm_Motor);
+        Gripper gripper = new Gripper(gripper_servo);
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
@@ -131,18 +139,30 @@ public class FirstOpMode extends OpMode {
         // Choose to drive using either Tank Mode, or POV Mode
         // Comment out the method that's not used.  The default below is POV.
         drive.go(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
-        arm.update();
         // POV Mode uses left stick to go forward, and right stick to turn.
         // - This uses basic math to combine motions and is easier to drive straight.
 
-        //Arm PID
+        /*Arm PID
+        arm.update();
         if (gamepad1.y){
             arm.StateUp();
         }
         if (gamepad1.a){
             arm.StateDown();
         }
-    }
+
+        //Gripper
+        if (gamepad1.b){
+            if (isgripperopen){
+                gripper.Close();
+                isgripperopen = false;
+            }
+            else if (isgripperopen == false){
+                gripper.Open();
+                isgripperopen = true;
+            }
+        }
+    */}
 
     /*
      * Code to run ONCE after the driver hits STOP
