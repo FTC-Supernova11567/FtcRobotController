@@ -81,7 +81,7 @@ public class VisionTestingOpMode extends OpMode {
         };
         //Initialize motor and other bullshit
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId);
         // Tell the driver that initialization is complete.
         camera.openCameraDeviceAsync(listener);
         telemetry.addData("Status", "Initialized");
