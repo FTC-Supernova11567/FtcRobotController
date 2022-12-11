@@ -30,15 +30,8 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.arcrobotics.ftclib.geometry.Translation2d;
-import com.arcrobotics.ftclib.kinematics.wpilibkinematics.ChassisSpeeds;
-import com.arcrobotics.ftclib.kinematics.wpilibkinematics.MecanumDriveKinematics;
-import com.arcrobotics.ftclib.kinematics.wpilibkinematics.MecanumDriveWheelSpeeds;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 
@@ -59,9 +52,9 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
  */
 
 @TeleOp(name = "AutoDriveByTrajectory", group = "Iterative OpMode")
-@Disabled
 public class AutoDriveByTrajectory extends OpMode {
     // Declare OpMode members.
+    private final double INCH = 0.393700787;
     private final ElapsedTime runtime = new ElapsedTime();
     private SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
     Trajectory myTrajectory = drive.trajectoryBuilder(new Pose2d())
@@ -109,6 +102,10 @@ public class AutoDriveByTrajectory extends OpMode {
      */
     @Override
     public void stop() {
+    }
+
+    public double inchtocm(double i){
+        return i * INCH;
     }
 
 }
