@@ -29,19 +29,14 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.geometry.Translation2d;
+import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.arcrobotics.ftclib.hardware.motors.MotorEx;
-import com.arcrobotics.ftclib.kinematics.wpilibkinematics.ChassisSpeeds;
-import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.kinematics.wpilibkinematics.MecanumDriveKinematics;
-import com.arcrobotics.ftclib.kinematics.wpilibkinematics.MecanumDriveWheelSpeeds;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorController;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -59,58 +54,42 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name = "Basic: Iterative OpMode", group = "Iterative OpMode")
-@Disabled
-public class FirstOpMode extends OpMode {
+@TeleOp(name = "drive", group = "Iterative OpMode")
+public class MainOpMode extends OpMode {
     // Declare OpMode members.
     private final ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftTop = null;
-    private DcMotor rightTop = null;
-    private DcMotor leftBottom = null;
-    private DcMotor rightBottom = null;
+    private Motor leftTop = null;
+    private Motor rightTop = null;
+    private Motor leftBottom = null;
+    private Motor rightBottom = null;
     private DcMotor arm_Motor = null;
     private Servo gripper_servo = null;
-    private boolean isgripperopen = false;
+    private MecanumDrive mecanum = null;
+    private RevIMU imu;
 
-    private Drive drive = null;
     private Arm arm = null;
     private Gripper gripper = null;
-    private final MecanumDriveKinematics kinematics = new MecanumDriveKinematics(
-            new Translation2d(11, 14.25),
-            new Translation2d(11, -14.25),
-            new Translation2d(-11, 14.25),
-            new Translation2d(-11, -14.25)
-    );
 
-    /*
-     * Code to run ONCE when the driver hits INIT
-     */
+    private boolean isgripperopen;
+
     @Override
-    public void init() {
+    public void init()  {//Code to run Once
         telemetry.addData("Status", "Initialized");
-        // Initialize the hardware variables. Note that the strings used here as parameters
-        // to 'get' must correspond to the names assigned during the robot configuration
-        // step (using the FTC Robot Controller app on the phone).
-        leftTop = hardwareMap.get(DcMotor.class, "leftTop");
-        rightTop = hardwareMap.get(DcMotor.class, "rightTop");
-        leftBottom = hardwareMap.get(DcMotor.class, "leftBottom");
-        rightBottom = hardwareMap.get(DcMotor.class, "rightBottom");
+
+        //Intialize Motors & Servos
+        leftTop = new Motor(hardwareMap, "leftTop");
+        rightTop = new Motor(hardwareMap, "rightTop");
+        leftBottom = new Motor(hardwareMap, "leftBottom");
+        rightBottom = new Motor(hardwareMap, "rightBottom");
         arm_Motor = hardwareMap.get(DcMotor.class, "Arm_Motor");
         gripper_servo = hardwareMap.get(Servo.class, "GripperServo");
 
-        Drive drive = new Drive((DcMotorEx) leftTop, (DcMotorEx) rightTop, (DcMotorEx) leftBottom, (DcMotorEx) rightBottom);
-        Arm arm = new Arm(arm_Motor);
-        Gripper gripper = new Gripper(gripper_servo);
+        //MecanumDrive and imu(Gyro) Initialization
+        mecanum = new MecanumDrive(leftTop, rightTop, leftBottom, rightBottom);
+        imu = new RevIMU(hardwareMap);
+        imu.init();
 
-        // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
-        // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
-        // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        leftTop.setDirection(DcMotor.Direction.REVERSE);
-        rightTop.setDirection(DcMotor.Direction.FORWARD);
-        leftBottom.setDirection(DcMotor.Direction.REVERSE);
-        rightBottom.setDirection(DcMotor.Direction.FORWARD);
-
-
+        mecanum.setRightSideInverted(true);
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
     }
@@ -136,13 +115,13 @@ public class FirstOpMode extends OpMode {
     @Override
     public void loop() {
 
-        // Choose to drive using either Tank Mode, or POV Mode
-        // Comment out the method that's not used.  The default below is POV.
-        drive.go(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
-        // POV Mode uses left stick to go forward, and right stick to turn.
-        // - This uses basic math to combine motions and is easier to drive straight.
+//      Mecanum Drive
+        double vertical = -gamepad1.left_stick_y;
+        double horizontal = gamepad1.left_stick_x;
+        double pivot = gamepad1.right_stick_x;
+        mecanum.driveRobotCentric(-horizontal, -vertical, -pivot);
 
-        /*Arm PID
+//      Arm & Gripper
         arm.update();
         if (gamepad1.y){
             arm.StateUp();
@@ -162,11 +141,14 @@ public class FirstOpMode extends OpMode {
                 isgripperopen = true;
             }
         }
-    */}
 
-    /*
-     * Code to run ONCE after the driver hits STOP
-     */
+//      Telemetry
+        telemetry.addData("Status", "Run Time: " + runtime.toString());
+        telemetry.addData("Status", "Heading: " + imu.getRotation2d().getDegrees());
+    }
+
+
+//     Code to run ONCE after the driver hits STOP
     @Override
     public void stop() {
     }

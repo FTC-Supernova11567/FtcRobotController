@@ -35,6 +35,7 @@ import com.arcrobotics.ftclib.kinematics.wpilibkinematics.MecanumDriveKinematics
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.hardware.RevIMU;
@@ -63,7 +64,7 @@ public class DriveOpMode extends OpMode {
     private Motor rightBottom = null;
     private MecanumDrive mecanum = null;
     private RevIMU imu;
-
+    private Drive drive;
 
 
     private final MecanumDriveKinematics kinematics = new MecanumDriveKinematics(
@@ -94,9 +95,10 @@ public class DriveOpMode extends OpMode {
         rightTop = new Motor(hardwareMap, "rightTop");
         leftBottom = new Motor(hardwareMap, "leftBottom");
         rightBottom = new Motor(hardwareMap, "rightBottom");
-        mecanum = new MecanumDrive( leftTop,  rightTop,  leftBottom,  rightBottom);
+        mecanum = new MecanumDrive(leftTop, rightTop, leftBottom, rightBottom);
         imu = new RevIMU(hardwareMap);
         imu.init();
+        //drive = new Drive((DcMotor) leftTop, (DcMotor) rightTop, (DcMotor) leftBottom, (DcMotor) rightBottom);
 
         mecanum.setRightSideInverted(true);
         // Tell the driver that initialization is complete.
@@ -131,10 +133,11 @@ public class DriveOpMode extends OpMode {
         double vertical = -gamepad1.left_stick_y;
         double horizontal = gamepad1.left_stick_x;
         double pivot = gamepad1.right_stick_x;
-        mecanum.driveFieldCentric(0, horizontal, 0.5, imu.getHeading());
-
+        mecanum.driveRobotCentric(-horizontal, -vertical, -pivot);
+        //drive.go(horizontal, vertical, pivot);
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());
+        telemetry.addData("Status", "Heading: " + imu.getRotation2d().getDegrees());
         //telemetry.addData("Motors", "left top (%.2f), right top(%.2f), left bottom(%.2f), right bottom(%.2f)"
     }
 

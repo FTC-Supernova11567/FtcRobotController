@@ -11,10 +11,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class Drive {
     private final ElapsedTime runtime = new ElapsedTime();
-    private DcMotorEx leftTop = null;
-    private DcMotorEx rightTop = null;
-    private DcMotorEx leftBottom = null;
-    private DcMotorEx rightBottom = null;
+    private DcMotor leftTop = null;
+    private DcMotor rightTop = null;
+    private DcMotor leftBottom = null;
+    private DcMotor rightBottom = null;
     private double Kp = 0;//Needs to be Configurable
     private double Ki = 0;
     private double Kd = 0;
@@ -28,12 +28,12 @@ public class Drive {
 
     );
 
-    public Drive(DcMotorEx leftTop, DcMotorEx rightTop, DcMotorEx leftBottom, DcMotorEx rightBottom) {
+    public Drive(DcMotor leftTop, DcMotor rightTop, DcMotor leftBottom, DcMotor rightBottom) {
         this.leftTop = leftTop;
         this.rightTop = rightTop;
         this.leftBottom = leftBottom;
         this.rightBottom = rightBottom;
-        this.leftTop.setVelocityPIDFCoefficients(Kp, Ki, Kd, 0);
+//        this.leftTop.setVelocityPIDFCoefficients(Kp, Ki, Kd, 0);
     }
 
     public void go(double horizontal, double vertical, double pivot) {
