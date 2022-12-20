@@ -1,56 +1,41 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.arcrobotics.ftclib.controller.PIDController;
+import com.arcrobotics.ftclib.controller.PIDFController;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class Arm {
-    private DcMotorEx Arm_Motor = null;
-    private int[] ticksarray = {0, 1000, 2000, 3000}; //Needs configuration according to encoder ticks
+    private final DcMotorEx arm_Motor;
+    private final int[] ticksarray = {0, 1000, 2000, 3000}; //Needs configuration according to encoder ticks
     //PID Var
-    double integralSum = 0;
-    double Kp = 0;
+
+    PIDFController controller = new PIDFController(1, 0, 0, 0);
     private int state = 0;
 
 
-    ElapsedTime timer = new ElapsedTime();
-    private  double lastError = 0;
-
-
     public Arm(DcMotor arm_Motor) {
-        Arm_Motor = (DcMotorEx) arm_Motor;
-        this.Arm_Motor.setPositionPIDFCoefficients(Kp);
+        this.arm_Motor = (DcMotorEx) arm_Motor;
     }
 
+
+    public void idle() {
+        state = 0;
+    }
+
+    public void bottom() {
+        state = 1;
+    }
+
+    public void middle() {
+        state = 2;
+    }
+
+    public void top() {
+        state = 3;
+    }
 
     public void update() {
-        // if motor not close enough to set point then:
-        if (lastError < 3) {//Configure
-            Arm_Motor.setTargetPosition(ticksarray[state]);
-        }
+        arm_Motor.setTargetPosition((int) controller.calculate(arm_Motor.getCurrentPosition(), ticksarray[state]));
     }
-    public void StateUp(){
-        if (state < 3){
-            state++;
-        }
-    }
-    public void StateDown(){
-        if (state > 0){
-            state--;
-        }
-    }
-
-    /*public double PIDController(double reference, double state){
-        double error = reference - state;
-        integralSum += error + timer.seconds();
-        double derivative = (error - lastError) / timer.seconds();
-        lastError = error;
-
-        timer.reset();
-
-        double output = (error * Kp) + (derivative * Kd) + (integralSum * Ki);
-        return output;
-    }
-*/}
+}

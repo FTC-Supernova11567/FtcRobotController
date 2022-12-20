@@ -124,10 +124,10 @@ public class MainOpMode extends OpMode {
 //      Arm & Gripper
         arm.update();
         if (gamepad1.y){
-            arm.StateUp();
+            arm.top();
         }
         if (gamepad1.a){
-            arm.StateDown();
+            arm.bottom();
         }
 
         //Gripper
@@ -136,7 +136,7 @@ public class MainOpMode extends OpMode {
                 gripper.Close();
                 isgripperopen = false;
             }
-            else if (isgripperopen == false){
+            else if (!isgripperopen){
                 gripper.Open();
                 isgripperopen = true;
             }

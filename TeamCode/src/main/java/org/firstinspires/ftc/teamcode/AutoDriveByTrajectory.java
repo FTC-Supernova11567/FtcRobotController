@@ -29,12 +29,14 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
@@ -53,15 +55,19 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
  */
 
 @TeleOp(name = "AutoDriveByTrajectory", group = "Iterative OpMode")
+@Disabled
 public class AutoDriveByTrajectory extends OpMode {
     // Declare OpMode members.
-    private final double INCH = 0.393700787;
     private final ElapsedTime runtime = new ElapsedTime();
-    private SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-    Trajectory myTrajectory = drive.trajectoryBuilder(new Pose2d())
-            .strafeRight(10)
-            .forward(5)
-            .build();
+    private Servo savtashaha = null;
+    private Servo sabashha = null;
+    private Gripper emashha = null;
+    private SampleMecanumDrive drive = null;
+    private Arm abashha = null;
+    Trajectory bluebottomleft = null;
+    Trajectory redlefttop = null;
+    Trajectory redbottomright = null;
+    Trajectory bluetopright = null;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -69,8 +75,143 @@ public class AutoDriveByTrajectory extends OpMode {
     @Override
     public void init() {
         telemetry.addData("Status", "Initialized");
+        savtashaha = hardwareMap.get(Servo.class, "GripperServo");
+        sabashha = hardwareMap.get(Servo.class, "GripperServo2");
+        emashha = new Gripper(sabashha, savtashaha);
+        drive = new SampleMecanumDrive(hardwareMap);
 
 
+        try {
+            bluebottomleft = drive.trajectoryBuilder(new Pose2d(-37, 60, Math.toRadians(-90)))
+                    //.strafeR
+                    .lineToLinearHeading(new Pose2d(-37, 12, Math.toRadians(180)))
+                    .lineToLinearHeading(new Pose2d(-60, 12, Math.toRadians(180)))
+                    .addSpatialMarker(new Vector2d(-60, 12), () -> {
+                        //open gripper
+                        emashha.Open();
+
+                        //expand ar
+                        abashha.middle();
+                        waitSeconds(2);
+
+                        //close gripper
+                        emashha.Close();
+                    })
+                    .lineToLinearHeading(new Pose2d(-23.5, 12, Math.toRadians(90)))
+                    .addSpatialMarker(new Vector2d(-23.5, 12), () -> {
+                        abashha.middle();
+                        waitSeconds(2);
+                        emashha.Open();
+
+                    })
+                    .lineToLinearHeading(new Pose2d(-60, 12, Math.toRadians(180)))
+                    .lineToLinearHeading(new Pose2d(-23.5, 12, Math.toRadians(-90)))
+                    .addSpatialMarker(new Vector2d(-23.5, 12), () -> {
+                        abashha.top();
+                        waitSeconds(2);
+                        emashha.Open();
+                    })
+                    .build();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+
+        try {
+            redlefttop = drive.trajectoryBuilder(new Pose2d(37, 60, Math.toRadians(-90)))
+                    //.strafeR
+                    .lineToLinearHeading(new Pose2d(37, 12, Math.toRadians(180)))
+                    .lineToLinearHeading(new Pose2d(60, 12, Math.toRadians(180)))
+                    .addSpatialMarker(new Vector2d(60, 12), () -> {
+                        //open gripper
+                        emashha.Open();
+
+                        //expand ar
+                        abashha.middle();
+                        waitSeconds(2);
+
+                        //close gripper
+                        emashha.Close();
+                    })
+                    .lineToLinearHeading(new Pose2d(23.5, 12, Math.toRadians(90)))
+                    .addSpatialMarker(new Vector2d(23.5, 12), () -> {
+                        abashha.middle();
+                        waitSeconds(2);
+                        emashha.Open();
+
+                    })
+                    .lineToLinearHeading(new Pose2d(60, 12, Math.toRadians(180)))
+                    .lineToLinearHeading(new Pose2d(23.5, 12, Math.toRadians(-90)))
+                    .addSpatialMarker(new Vector2d(23.5, 12), () -> {
+                        abashha.top();
+                        waitSeconds(2);
+                        emashha.Open();
+                    })
+                    .build();
+
+            redbottomright = drive.trajectoryBuilder(new Pose2d(37, 60, Math.toRadians(-90)))
+                    //.strafeR
+                    .lineToLinearHeading(new Pose2d(37, -12, Math.toRadians(180)))
+                    .lineToLinearHeading(new Pose2d(60, -12, Math.toRadians(180)))
+                    .addSpatialMarker(new Vector2d(60, -12), () -> {
+                        //open gripper
+                        emashha.Open();
+
+                        //expand ar
+                        abashha.middle();
+                        waitSeconds(2);
+
+                        //close gripper
+                        emashha.Close();
+                    })
+                    .lineToLinearHeading(new Pose2d(23.5, -12, Math.toRadians(-90)))
+                    .addSpatialMarker(new Vector2d(23.5, -12), () -> {
+                        abashha.middle();
+                        waitSeconds(2);
+                        emashha.Open();
+
+                    })
+                    .lineToLinearHeading(new Pose2d(60, -12, Math.toRadians(180)))
+                    .lineToLinearHeading(new Pose2d(23.5, -12, Math.toRadians(90)))
+                    .addSpatialMarker(new Vector2d(23.5, -12), () -> {
+                        abashha.top();
+                        waitSeconds(2);
+                        emashha.Open();
+                    })
+                    .build();
+            bluetopright = drive.trajectoryBuilder(new Pose2d(-37, -60, Math.toRadians(-90)))
+                    //.strafeR
+                    .lineToLinearHeading(new Pose2d(-37, -12, Math.toRadians(180)))
+                    .lineToLinearHeading(new Pose2d(-60, -12, Math.toRadians(180)))
+                    .addSpatialMarker(new Vector2d(-60, -12), () -> {
+                        //open gripper
+                        emashha.Open();
+
+                        //expand ar
+                        abashha.middle();
+                        waitSeconds(2);
+
+                        //close gripper
+                        emashha.Close();
+                    })
+                    .lineToLinearHeading(new Pose2d(-23.5, -12, Math.toRadians(-90)))
+                    .addSpatialMarker(new Vector2d(-23.5, -12), () -> {
+                        abashha.middle();
+                        waitSeconds(2);
+                        emashha.Open();
+
+                    })
+                    .lineToLinearHeading(new Pose2d(-60, -12, Math.toRadians(180)))
+                    .lineToLinearHeading(new Pose2d(-23.5, -12, Math.toRadians(90)))
+                    .addSpatialMarker(new Vector2d(-23.5, -12), () -> {
+                        abashha.top();
+                        waitSeconds(2);
+                        emashha.Open();
+                    })
+                    .build();
+        } catch (Throwable t) {
+            t.printStackTrace();
+
+        }
 
         telemetry.addData("Status", "Initialized");
     }
@@ -88,6 +229,7 @@ public class AutoDriveByTrajectory extends OpMode {
     @Override
     public void start() {
         runtime.reset();
+        drive.followTrajectory(bluebottomleft);
     }
 
     /*
@@ -95,7 +237,7 @@ public class AutoDriveByTrajectory extends OpMode {
      */
     @Override
     public void loop() {
-        drive.followTrajectory(myTrajectory);
+
     }
 
     /*
@@ -105,8 +247,11 @@ public class AutoDriveByTrajectory extends OpMode {
     public void stop() {
     }
 
-    public double inchtocm(double i){
-        return i * INCH;
+    public void waitSeconds(double seconds) {
+        try {
+            Thread.sleep((long) (1000 * seconds));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
-
 }
