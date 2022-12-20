@@ -64,9 +64,10 @@ public class DriveOpMode extends OpMode {
     private Motor rightBottom = null;
     private MecanumDrive mecanum = null;
     private RevIMU imu;
-    private Drive drive;
 
-
+    private boolean isLTPressed;
+    private final double minSpeed = 0.5;// The speed the robot is at while LT is pressed (in 1-0)
+    private final double maxSpeed = 1;
     private final MecanumDriveKinematics kinematics = new MecanumDriveKinematics(
             new Translation2d(11, 14.25),
             new Translation2d(11, -14.25),
@@ -133,7 +134,14 @@ public class DriveOpMode extends OpMode {
         double vertical = -gamepad1.left_stick_y;
         double horizontal = gamepad1.left_stick_x;
         double pivot = gamepad1.right_stick_x;
+        if (gamepad1.left_trigger > 0.2){
+            mecanum.setMaxSpeed(minSpeed);
+        }
+        else{
+            mecanum.setMaxSpeed(maxSpeed);
+        }
         mecanum.driveRobotCentric(-horizontal, -vertical, -pivot);
+
         //drive.go(horizontal, vertical, pivot);
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());

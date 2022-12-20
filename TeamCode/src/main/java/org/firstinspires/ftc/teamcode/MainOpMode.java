@@ -54,7 +54,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name = "drive", group = "Iterative OpMode")
+@TeleOp(name = "mainOpMode", group = "Iterative OpMode")
 public class MainOpMode extends OpMode {
     // Declare OpMode members.
     private final ElapsedTime runtime = new ElapsedTime();
@@ -119,7 +119,7 @@ public class MainOpMode extends OpMode {
         double vertical = -gamepad1.left_stick_y;
         double horizontal = gamepad1.left_stick_x;
         double pivot = gamepad1.right_stick_x;
-        mecanum.driveRobotCentric(-horizontal, -vertical, -pivot);
+        mecanum.driveFieldCentric(-horizontal, -vertical, -pivot, imu.getAbsoluteHeading());
 
 //      Arm & Gripper
         arm.update();
@@ -143,7 +143,7 @@ public class MainOpMode extends OpMode {
         }
 
 //      Telemetry
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
+        telemetry.addData("Status", "Run Time: " + runtime.seconds());
         telemetry.addData("Status", "Heading: " + imu.getRotation2d().getDegrees());
     }
 
