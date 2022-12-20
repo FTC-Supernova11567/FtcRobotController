@@ -70,6 +70,9 @@ public class MainOpMode extends OpMode {
     private Arm arm = null;
     private Gripper gripper = null;
 
+    private double speedMultiplayer = 2;
+    private final double minSpeed = 0.5;// The speed the robot is at while LT is pressed (in 1-0)
+    private final double maxSpeed = 1;
     private boolean isgripperopen;
 
     @Override
@@ -89,7 +92,6 @@ public class MainOpMode extends OpMode {
         imu = new RevIMU(hardwareMap);
         imu.init();
 
-        mecanum.setRightSideInverted(true);
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
     }

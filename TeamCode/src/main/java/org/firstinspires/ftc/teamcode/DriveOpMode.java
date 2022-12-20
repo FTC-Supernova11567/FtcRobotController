@@ -36,6 +36,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.hardware.RevIMU;
@@ -58,24 +59,16 @@ import com.arcrobotics.ftclib.hardware.RevIMU;
 public class DriveOpMode extends OpMode {
     // Declare OpMode members.
     private final ElapsedTime runtime = new ElapsedTime();
-    private Motor leftTop = null;
-    private Motor rightTop = null;
-    private Motor leftBottom = null;
-    private Motor rightBottom = null;
-    private MecanumDrive mecanum = null;
+    private DcMotor leftTop = null;
+    private DcMotor rightTop = null;
+    private DcMotor leftBottom = null;
+    private DcMotor rightBottom = null;
+    private Drive drive = null;
     private RevIMU imu;
 
-    private boolean isLTPressed;
+    private double speedMultiplayer = 2;
     private final double minSpeed = 0.5;// The speed the robot is at while LT is pressed (in 1-0)
     private final double maxSpeed = 1;
-    private final MecanumDriveKinematics kinematics = new MecanumDriveKinematics(
-            new Translation2d(11, 14.25),
-            new Translation2d(11, -14.25),
-            new Translation2d(-11, 14.25),
-            new Translation2d(-11, -14.25)
-
-
-    );
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -84,24 +77,16 @@ public class DriveOpMode extends OpMode {
     public void init() {
         telemetry.addData("Status", "Initialized");
 
-        // Initialize the hardware variables. Note that the strings used here as parameters
-        // to 'get' must correspond to the names assigned during the robot configuration
-        // step (using the FTC Robot Controller app on the phone).
-//        leftTop = (Motor) hardwareMap.get(DcMotor.class, "leftTop");
-//        rightTop = (Motor)hardwareMap.get(DcMotor.class, "rightTop");
-//        leftBottom = (Motor)hardwareMap.get(DcMotor.class, "leftBottom");
-//        rightBottom = (Motor)hardwareMap.get(DcMotor.class, "rightBottom");
-
-        leftTop = new Motor(hardwareMap, "leftTop");
-        rightTop = new Motor(hardwareMap, "rightTop");
-        leftBottom = new Motor(hardwareMap, "leftBottom");
-        rightBottom = new Motor(hardwareMap, "rightBottom");
-        mecanum = new MecanumDrive(leftTop, rightTop, leftBottom, rightBottom);
+        leftTop = hardwareMap.get(DcMotor.class, "leftTop");
+        rightTop = hardwareMap.get(DcMotor.class, "rightTop");
+        leftBottom = hardwareMap.get(DcMotor.class, "leftBottom");
+        rightBottom = hardwareMap.get(DcMotor.class, "rightBottom");
         imu = new RevIMU(hardwareMap);
         imu.init();
-        //drive = new Drive((DcMotor) leftTop, (DcMotor) rightTop, (DcMotor) leftBottom, (DcMotor) rightBottom);
+        drive = new Drive(leftTop,rightTop,leftBottom,rightBottom);
 
-        mecanum.setRightSideInverted(true);
+        rightTop.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightBottom.setDirection(DcMotorSimple.Direction.REVERSE);
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
     }
@@ -128,25 +113,19 @@ public class DriveOpMode extends OpMode {
     public void loop() {
         // Choose to drive using either Tank Mode, or POV Mode
         // Comment out the method that's not used.  The default below is POV.
+        if (gamepad1.left_trigger > 0.2){
+            speedMultiplayer = minSpeed;
+        }
+        else{
+            speedMultiplayer = maxSpeed;
+        }
 
         // POV Mode uses left stick to go forward, and right stick to turn.
         // - This uses basic math to combine motions and is easier to drive straight.
-        double vertical = -gamepad1.left_stick_y;
-        double horizontal = gamepad1.left_stick_x;
-        double pivot = gamepad1.right_stick_x;
-        if (gamepad1.left_trigger > 0.2){
-            mecanum.setMaxSpeed(minSpeed);
-        }
-        else{
-            mecanum.setMaxSpeed(maxSpeed);
-        }
-        mecanum.driveRobotCentric(-horizontal, -vertical, -pivot);
-
-        //drive.go(horizontal, vertical, pivot);
+        drive.go(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, speedMultiplayer, imu.getRotation2d().getDegrees());
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());
         telemetry.addData("Status", "Heading: " + imu.getRotation2d().getDegrees());
-        //telemetry.addData("Motors", "left top (%.2f), right top(%.2f), left bottom(%.2f), right bottom(%.2f)"
     }
 
     /*
