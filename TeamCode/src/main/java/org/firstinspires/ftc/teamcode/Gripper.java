@@ -27,20 +27,12 @@ public class Gripper {
         servo2.setPosition(LEFTCLOSEANGLE);
     }
 
-    public boolean IsClose(){
-        if (servo.getPosition() == RIGHTCLOSEANGLE && servo2.getPosition() == LEFTCLOSEANGLE){
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
-    public boolean IsOpen(){
-        if (servo.getPosition() == RIGHTOPENANGLE && servo2.getPosition() == LEFTOPENANGLE){
-            return true;
-        }
-        else{
-            return false;
-        }
+    public boolean IsBusy(){
+       if (servo.getPosition() < 0.9 && servo.getPosition()>0.5) {
+           return true;
+       }
+       else{
+           return false;
+       }
     }
 }

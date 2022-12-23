@@ -137,12 +137,12 @@ public class MainOpMode extends OpMode {
 
         while (gamepad2.b && isOpen){
             gripper.Close();
-            if (gripper.IsClose())
+            if (gripper.IsBusy())
                 isOpen = false;
         }
         while (gamepad2.b && !isOpen){
             gripper.Open();
-            if (gripper.IsOpen()) {
+            if (!gripper.IsBusy()) {
                 isOpen = true;
             }
         }
