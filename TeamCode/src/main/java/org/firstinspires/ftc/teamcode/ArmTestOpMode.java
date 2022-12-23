@@ -29,17 +29,12 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.arcrobotics.ftclib.geometry.Translation2d;
-import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.arcrobotics.ftclib.kinematics.wpilibkinematics.MecanumDriveKinematics;
+import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.arcrobotics.ftclib.drivebase.MecanumDrive;
-import com.arcrobotics.ftclib.hardware.RevIMU;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -55,16 +50,11 @@ import com.arcrobotics.ftclib.hardware.RevIMU;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name = "drive", group = "Iterative OpMode")
-public class DriveOpMode extends OpMode {
+@TeleOp(name = "Arm Test", group = "Iterative OpMode")
+public class ArmTestOpMode extends OpMode {
     // Declare OpMode members.
     private final ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftTop = null;
-    private DcMotor rightTop = null;
-    private DcMotor leftBottom = null;
-    private DcMotor rightBottom = null;
-    private Drive drive = null;
-    private RevIMU imu;
+    private DcMotor arm_motor = null;
 
     private double speedMultiplayer = 2;
     private final double minSpeed = 0.5;// The speed the robot is at while LT is pressed (in 1-0)
@@ -76,16 +66,7 @@ public class DriveOpMode extends OpMode {
     @Override
     public void init() {
         telemetry.addData("Status", "Initialized");
-
-        leftTop = hardwareMap.get(DcMotor.class, "leftTop");
-        rightTop = hardwareMap.get(DcMotor.class, "rightTop");
-        leftBottom = hardwareMap.get(DcMotor.class, "leftBottom");
-        rightBottom = hardwareMap.get(DcMotor.class, "rightBottom");
-        imu = new RevIMU(hardwareMap);
-        imu.init();
-        drive = new Drive(leftTop,rightTop,leftBottom,rightBottom);
-
-        leftTop.setDirection(DcMotorSimple.Direction.REVERSE);
+        arm_motor = hardwareMap.get(DcMotor.class, "ArmMotor");
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
     }
@@ -112,19 +93,8 @@ public class DriveOpMode extends OpMode {
     public void loop() {
         // Choose to drive using either Tank Mode, or POV Mode
         // Comment out the method that's not used.  The default below is POV.
-        if (gamepad1.left_trigger > 0.2){
-            speedMultiplayer = minSpeed;
-        }
-        else{
-            speedMultiplayer = maxSpeed;
-        }
 
-        // POV Mode uses left stick to go forward, and right stick to turn.
-        // - This uses basic math to combine motions and is easier to drive straight.
-        drive.go(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, speedMultiplayer, imu.getRotation2d().getRadians());
-        // Show the elapsed game time and wheel power.
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("Status", "Heading: " + imu.getRotation2d().getDegrees());
+        arm_motor.setPower(gamepad1.left_stick_y);
     }
 
     /*

@@ -29,14 +29,11 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.arcrobotics.ftclib.drivebase.MecanumDrive;
-import com.arcrobotics.ftclib.geometry.Translation2d;
 import com.arcrobotics.ftclib.hardware.RevIMU;
-import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.arcrobotics.ftclib.kinematics.wpilibkinematics.MecanumDriveKinematics;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -58,42 +55,44 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class MainOpMode extends OpMode {
     // Declare OpMode members.
     private final ElapsedTime runtime = new ElapsedTime();
-    private Motor leftTop = null;
-    private Motor rightTop = null;
-    private Motor leftBottom = null;
-    private Motor rightBottom = null;
-    private DcMotor arm_Motor = null;
-    private Servo gripper_servo = null;
-    private MecanumDrive mecanum = null;
-    private RevIMU imu;
-
-    private Arm arm = null;
+    private DcMotor leftTop = null;
+    private DcMotor rightTop = null;
+    private DcMotor leftBottom = null;
+    private DcMotor rightBottom = null;
+    private Servo rightServo = null;
+    private Servo leftServo = null;
     private Gripper gripper = null;
+    private boolean isOpen = true;
+    private Drive drive = null;
+    private RevIMU imu;
 
     private double speedMultiplayer = 2;
     private final double minSpeed = 0.5;// The speed the robot is at while LT is pressed (in 1-0)
     private final double maxSpeed = 1;
-    private boolean isgripperopen;
 
+    /*
+     * Code to run ONCE when the driver hits INIT
+     */
     @Override
-    public void init()  {//Code to run Once
+    public void init() {
         telemetry.addData("Status", "Initialized");
 
-        //Intialize Motors & Servos
-        leftTop = new Motor(hardwareMap, "leftTop");
-        rightTop = new Motor(hardwareMap, "rightTop");
-        leftBottom = new Motor(hardwareMap, "leftBottom");
-        rightBottom = new Motor(hardwareMap, "rightBottom");
-        arm_Motor = hardwareMap.get(DcMotor.class, "Arm_Motor");
-        gripper_servo = hardwareMap.get(Servo.class, "GripperServo");
-
-        //MecanumDrive and imu(Gyro) Initialization
-        mecanum = new MecanumDrive(leftTop, rightTop, leftBottom, rightBottom);
+        leftTop = hardwareMap.get(DcMotor.class, "leftTop");
+        rightTop = hardwareMap.get(DcMotor.class, "rightTop");
+        leftBottom = hardwareMap.get(DcMotor.class, "leftBottom");
+        rightBottom = hardwareMap.get(DcMotor.class, "rightBottom");
+        leftServo = hardwareMap.get(Servo.class, "leftServo");
+        rightServo = hardwareMap.get(Servo.class, "rightServo");
         imu = new RevIMU(hardwareMap);
         imu.init();
+        drive = new Drive(leftTop,rightTop,leftBottom,rightBottom);
+        gripper = new Gripper(rightServo, leftServo);
 
+        leftTop.setDirection(DcMotorSimple.Direction.REVERSE);
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
+        leftServo.setPosition(1);
+        rightServo.setPosition(1);
     }
 
     /*
@@ -116,41 +115,37 @@ public class MainOpMode extends OpMode {
      */
     @Override
     public void loop() {
-
-//      Mecanum Drive
-        double vertical = -gamepad1.left_stick_y;
-        double horizontal = gamepad1.left_stick_x;
-        double pivot = gamepad1.right_stick_x;
-        mecanum.driveFieldCentric(-horizontal, -vertical, -pivot, imu.getAbsoluteHeading());
-
-//      Arm & Gripper
-        arm.update();
-        if (gamepad1.y){
-            arm.top();
+        // Choose to drive using either Tank Mode, or POV Mode
+        // Comment out the method that's not used.  The default below is POV.
+        if (gamepad1.left_trigger > 0.2){
+            speedMultiplayer = minSpeed;
         }
-        if (gamepad1.a){
-            arm.bottom();
+        else{
+            speedMultiplayer = maxSpeed;
         }
 
-        //Gripper
-        if (gamepad1.b){
-            if (isgripperopen){
-                gripper.Close();
-                isgripperopen = false;
-            }
-            else if (!isgripperopen){
-                gripper.Open();
-                isgripperopen = true;
+        if (gamepad1.b && isOpen){
+            gripper.Close();
+            if (gripper.IsClose())
+                isOpen = false;
+        }
+        else if (gamepad1.b && !isOpen){
+            gripper.Open();
+            if (gripper.IsOpen()) {
+                isOpen = true;
             }
         }
-
-//      Telemetry
-        telemetry.addData("Status", "Run Time: " + runtime.seconds());
+        // POV Mode uses left stick to go forward, and right stick to turn.
+        // - This uses basic math to combine motions and is easier to drive straight.
+        drive.go(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, speedMultiplayer, imu.getRotation2d().getRadians());
+        // Show the elapsed game time and wheel power.
+        telemetry.addData("Status", "Run Time: " + runtime.toString());
         telemetry.addData("Status", "Heading: " + imu.getRotation2d().getDegrees());
     }
 
-
-//     Code to run ONCE after the driver hits STOP
+    /*
+     * Code to run ONCE after the driver hits STOP
+     */
     @Override
     public void stop() {
     }
