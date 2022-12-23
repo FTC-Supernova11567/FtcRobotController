@@ -5,8 +5,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class Gripper {
     private Servo servo;
     private Servo servo2;
-    private final double OPENANGLE = 1;
-    private final double CLOSEANGLE = 0.2;
+    private final double RIGHTOPENANGLE = 0.9;
+    private final double LEFTOPENANGLE = 0;
+    private final double RIGHTCLOSEANGLE = 0.5;
+    private final double LEFTCLOSEANGLE = 0.5;
 
     public Gripper(Servo servo, Servo servo2) {
         this.servo = servo;
@@ -16,17 +18,17 @@ public class Gripper {
     }
 
     public void Open() {
-        servo.setPosition(OPENANGLE);
-        servo2.setPosition(OPENANGLE);
+        servo.setPosition(RIGHTOPENANGLE);
+        servo2.setPosition(LEFTOPENANGLE);
     }
 
     public void Close() {
-        servo.setPosition(CLOSEANGLE);
-        servo2.setPosition(CLOSEANGLE);
+        servo.setPosition(RIGHTCLOSEANGLE);
+        servo2.setPosition(LEFTCLOSEANGLE);
     }
 
     public boolean IsClose(){
-        if (servo.getPosition() == CLOSEANGLE && servo2.getPosition() == CLOSEANGLE){
+        if (servo.getPosition() == RIGHTCLOSEANGLE && servo2.getPosition() == LEFTCLOSEANGLE){
             return true;
         }
         else{
@@ -34,7 +36,7 @@ public class Gripper {
         }
     }
     public boolean IsOpen(){
-        if (servo.getPosition() == OPENANGLE && servo2.getPosition() == OPENANGLE){
+        if (servo.getPosition() == RIGHTOPENANGLE && servo2.getPosition() == LEFTOPENANGLE){
             return true;
         }
         else{
