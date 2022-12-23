@@ -68,7 +68,10 @@ public class AutoDriveByTrajectory extends OpMode {
     Trajectory redlefttop = null;
     Trajectory redbottomright = null;
     Trajectory bluetopright = null;
-
+    Trajectory bluebottombackup=null;
+    Trajectory bluetopbackup=null;
+    Trajectory redleftbackup=null;
+    Trajectory redrightbackup=null;
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -111,6 +114,7 @@ public class AutoDriveByTrajectory extends OpMode {
                         waitSeconds(2);
                         emashha.Open();
                     })
+                    .lineToLinearHeading(new Pose2d(-60, -60,Math.toRadians(-90)))
                     .build();
         } catch (Throwable t) {
             t.printStackTrace();
@@ -146,6 +150,7 @@ public class AutoDriveByTrajectory extends OpMode {
                         waitSeconds(2);
                         emashha.Open();
                     })
+                    .lineToLinearHeading(new Pose2d(60, 60,Math.toRadians(-90)))
                     .build();
 
             redbottomright = drive.trajectoryBuilder(new Pose2d(37, 60, Math.toRadians(-90)))
@@ -177,6 +182,7 @@ public class AutoDriveByTrajectory extends OpMode {
                         waitSeconds(2);
                         emashha.Open();
                     })
+                    .lineToLinearHeading(new Pose2d(0, 60,Math.toRadians(-90)))
                     .build();
             bluetopright = drive.trajectoryBuilder(new Pose2d(-37, -60, Math.toRadians(-90)))
                     //.strafeR
@@ -207,6 +213,19 @@ public class AutoDriveByTrajectory extends OpMode {
                         waitSeconds(2);
                         emashha.Open();
                     })
+                    .lineToLinearHeading(new Pose2d(0, -60,Math.toRadians(-90)))
+                    .build();
+            redleftbackup = drive.trajectoryBuilder(new Pose2d(37, -60, Math.toRadians(-90)))
+                            .lineToLinearHeading(new Pose2d(37, -37,Math.toRadians(-90)))
+                            .build();
+            redrightbackup = drive.trajectoryBuilder(new Pose2d(-37, 60, Math.toRadians(-90)))
+                    .lineToLinearHeading(new Pose2d(-37, 37,Math.toRadians(-90)))
+                    .build();
+            bluetopbackup = drive.trajectoryBuilder(new Pose2d(37, 60, Math.toRadians(-90)))
+                    .lineToLinearHeading(new Pose2d(37, 37,Math.toRadians(-90)))
+                    .build();
+            bluebottombackup = drive.trajectoryBuilder(new Pose2d(37, -60, Math.toRadians(-90)))
+                    .lineToLinearHeading(new Pose2d(-60, -37,Math.toRadians(-90)))
                     .build();
         } catch (Throwable t) {
             t.printStackTrace();
