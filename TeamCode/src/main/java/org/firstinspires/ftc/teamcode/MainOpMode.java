@@ -31,6 +31,8 @@ package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.arcrobotics.ftclib.gamepad.GamepadEx;
+import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -70,11 +72,13 @@ public class MainOpMode extends OpMode {
     private boolean isOpen = true;
     private Drive drive = null;
     private RevIMU imu;
+    boolean stop = false;
+    private GamepadEx gamepadEx2 = null;
     public static double ArmPower = 0.8;
 
     private double speedMultiplayer = 2;
     private final double minSpeed = 1;// The speed the robot is at while LT is pressed (in 1-0)
-    private  double maxSpeed = 2;
+    private double maxSpeed = 2;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -94,11 +98,11 @@ public class MainOpMode extends OpMode {
         leftArm = hardwareMap.get(DcMotor.class, "RightArmMotor");
         imu = new RevIMU(hardwareMap);
         imu.init();
-        drive = new Drive(leftTop,rightTop,leftBottom,rightBottom);
+        drive = new Drive(leftTop, rightTop, leftBottom, rightBottom);
         gripper = new Gripper(rightServo, leftServo);
         rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
+        gamepadEx2 = new GamepadEx(gamepad2);
         leftTop.setDirection(DcMotorSimple.Direction.REVERSE);
         rightArm.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -128,36 +132,33 @@ public class MainOpMode extends OpMode {
     public void loop() {
         // Choose to drive using either Tank Mode, or POV Mode
         // Comment out the method that's not used.  The default below is POV.
-        if (gamepad1.left_trigger > 0.2){
+        if (gamepad1.left_trigger > 0.2) {
             speedMultiplayer = minSpeed;
-        }
-        else{
+        } else {
             speedMultiplayer = maxSpeed;
         }
 
-        while (gamepad2.b && isOpen){
-            gripper.Close();
-            if (gripper.IsBusy())
-                isOpen = false;
-        }
-        while (gamepad2.b && !isOpen){
+        if (gamepad2.a) {
             gripper.Open();
-            if (!gripper.IsBusy()) {
-                isOpen = true;
-            }
         }
-        if (gamepad2.dpad_up){
+        if (gamepad2.b) {
+            gripper.Close();
+        }
+        if (gamepad2.dpad_up) {
             leftArm.setPower(ArmPower);
             rightArm.setPower(ArmPower);
-        }
-        else if (gamepad2.dpad_down){
+        } else if (gamepad2.dpad_down) {
             leftArm.setPower(-0.2);
             rightArm.setPower(-0.2);
+        } else if (gamepad2.x){
+            leftArm.setPower(-ArmPower);
+            rightArm.setPower(-ArmPower);
         }
-        else{
+        else {
             leftArm.setPower(0.1);
             rightArm.setPower(0.1);
         }
+        stop = false;
 
         drive.go(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, speedMultiplayer, -imu.getRotation2d().getRadians());
         // Show the elapsed game time and wheel power.

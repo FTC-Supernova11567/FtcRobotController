@@ -26,13 +26,4 @@ public class Gripper {
         servo.setPosition(RIGHTCLOSEANGLE);
         servo2.setPosition(LEFTCLOSEANGLE);
     }
-
-    public boolean IsBusy(){
-       if (servo.getPosition() < 0.9 && servo.getPosition()>0.5) {
-           return true;
-       }
-       else{
-           return false;
-       }
-    }
 }

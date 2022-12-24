@@ -29,15 +29,16 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
 
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -52,15 +53,13 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
-@Disabled
-@TeleOp(name = "VisionTestingOpMode", group = "Iterative OpMode")
-public class VisionTestingOpMode extends OpMode {
+
+@TeleOp(name = "Autonomos", group = "")
+public class AutonomosOpMode extends OpMode {
     // Declare OpMode members.
     private final ElapsedTime runtime = new ElapsedTime();
-    OpenCvCamera camera;
-    AprilTagDetectionPipeline aprilTagDetectionPipeline;
-    private  BarcodDetector barcodDetector;
-
+    private SampleMecanumDrive drive = null;
+    Trajectory parking = null;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -68,22 +67,16 @@ public class VisionTestingOpMode extends OpMode {
     @Override
     public void init() {
         telemetry.addData("Status", "Initialized");
-        OpenCvCamera.AsyncCameraOpenListener listener = new OpenCvCamera.AsyncCameraOpenListener() {
-            @Override
-            public void onOpened() {
-                camera.startStreaming(800,448, OpenCvCameraRotation.UPRIGHT);
-            }
+        drive = new SampleMecanumDrive(hardwareMap);
+        try {
+            parking = drive.trajectoryBuilder(new Pose2d())
+                    .forward(20)
+                    .build();
+        } catch (Throwable t) {
+            t.printStackTrace();
 
-            @Override
-            public void onError(int errorCode) {
+        }
 
-            }
-        };
-        //Initialize motor and other bullshit
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId);
-        // Tell the driver that initialization is complete.
-        camera.openCameraDeviceAsync(listener);
         telemetry.addData("Status", "Initialized");
     }
 
@@ -92,8 +85,6 @@ public class VisionTestingOpMode extends OpMode {
      */
     @Override
     public void init_loop() {
-        camera.setPipeline(aprilTagDetectionPipeline);
-
     }
 
     /*
@@ -102,6 +93,7 @@ public class VisionTestingOpMode extends OpMode {
     @Override
     public void start() {
         runtime.reset();
+        drive.followTrajectory(parking);
     }
 
     /*
@@ -109,11 +101,21 @@ public class VisionTestingOpMode extends OpMode {
      */
     @Override
     public void loop() {
-        barcodDetector.find_id();
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
+
     }
 
-    public  void stop(){
-        camera.closeCameraDevice();
+    /*
+     * Code to run ONCE after the driver hits STOP
+     */
+    @Override
+    public void stop() {
+    }
+
+    public void waitSeconds(double seconds) {
+        try {
+            Thread.sleep((long) (1000 * seconds));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
