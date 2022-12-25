@@ -160,7 +160,8 @@ public class MainOpMode extends OpMode {
         }
         stop = false;
 
-        drive.go(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, speedMultiplayer, -imu.getRotation2d().getRadians());
+
+        drive.go(gamepad1.left_stick_x, -gamepad1.left_stick_y, deadzone(gamepad1.right_stick_x), speedMultiplayer, -imu.getRotation2d().getRadians());
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());
         telemetry.addData("Degrees", leftServo.getPosition());
@@ -172,6 +173,13 @@ public class MainOpMode extends OpMode {
      */
     @Override
     public void stop() {
+    }
+
+    public double deadzone(double val) {
+        if (val < 0.05 && val > -0.05) {
+            return 0;
+        }
+        return val;
     }
 
 }

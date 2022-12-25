@@ -70,7 +70,7 @@ public class AutonomosOpMode extends OpMode {
         drive = new SampleMecanumDrive(hardwareMap);
         try {
             parking = drive.trajectoryBuilder(new Pose2d())
-                    .forward(20)
+                    .forward(25)
                     .build();
         } catch (Throwable t) {
             t.printStackTrace();
