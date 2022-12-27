@@ -75,6 +75,7 @@ public class BlueBottomLeft extends OpMode {
         drive = new SampleMecanumDrive(hardwareMap);
         trajectories = new Trajectories(savtashaha, sabashha, emashha, drive, abashha);
         telemetry.addData("Status", "Initialized");
+        trajectories.setup();
     }
 
     /*
