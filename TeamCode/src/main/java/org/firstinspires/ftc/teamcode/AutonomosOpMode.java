@@ -38,7 +38,10 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -59,7 +62,10 @@ public class AutonomosOpMode extends OpMode {
     // Declare OpMode members.
     private final ElapsedTime runtime = new ElapsedTime();
     private SampleMecanumDrive drive = null;
+    private AprilTagDetector aprilTagDetector = null;
     Trajectory parking = null;
+
+    private int id;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -76,7 +82,10 @@ public class AutonomosOpMode extends OpMode {
             t.printStackTrace();
 
         }
-
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+        aprilTagDetector = new AprilTagDetector(camera, hardwareMap, telemetry);
+        aprilTagDetector.init();
         telemetry.addData("Status", "Initialized");
     }
 
@@ -85,6 +94,7 @@ public class AutonomosOpMode extends OpMode {
      */
     @Override
     public void init_loop() {
+        aprilTagDetector.detectTag();
     }
 
     /*
@@ -93,7 +103,8 @@ public class AutonomosOpMode extends OpMode {
     @Override
     public void start() {
         runtime.reset();
-        drive.followTrajectory(parking);
+        id = aprilTagDetector.publishResult();
+        //drive.followTrajectory(parking);
     }
 
     /*
