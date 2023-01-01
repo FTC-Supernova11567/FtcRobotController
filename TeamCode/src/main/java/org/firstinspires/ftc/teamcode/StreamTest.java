@@ -18,9 +18,14 @@ public class StreamTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         // gives Vuforia more time to exit before the watchdog notices
         msStuckDetectStop = 2500;
+        OpenCvCamera camera = null;
         //int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"));
-        //FtcDashboard.getInstance().startCameraStream(camera,30);
+        try {
+            camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"));
+        } catch (Throwable t) {
+            telemetry.addLine(t.getMessage());
+        }
+        FtcDashboard.getInstance().startCameraStream(camera,30);
 
         waitForStart();
 
