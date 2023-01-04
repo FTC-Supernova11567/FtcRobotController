@@ -64,17 +64,14 @@ public class MainOpMode extends OpMode {
     private DcMotor rightTop = null;
     private DcMotor leftBottom = null;
     private DcMotor rightBottom = null;
-    private DcMotor rightArm = null;
-    private DcMotor leftArm = null;
+    private DcMotor right_arm_motor = null;
+    private DcMotor left_arm_motor = null;
     private Servo rightServo = null;
     private Servo leftServo = null;
     private Gripper gripper = null;
-    private boolean isOpen = true;
     private Drive drive = null;
+    private Arm arm = null;
     private RevIMU imu;
-    boolean stop = false;
-    private GamepadEx gamepadEx2 = null;
-    public static double ArmPower = 0.8;
 
     private double speedMultiplayer = 2;
     private final double minSpeed = 1;// The speed the robot is at while LT is pressed (in 1-0)
@@ -94,17 +91,20 @@ public class MainOpMode extends OpMode {
         rightBottom = hardwareMap.get(DcMotor.class, "rightBottom");
         leftServo = hardwareMap.get(Servo.class, "leftServo");
         rightServo = hardwareMap.get(Servo.class, "rightServo");
-        rightArm = hardwareMap.get(DcMotor.class, "LeftArmMotor");
-        leftArm = hardwareMap.get(DcMotor.class, "RightArmMotor");
+        left_arm_motor = hardwareMap.get(DcMotor.class, "LeftArmMotor");
+        right_arm_motor = hardwareMap.get(DcMotor.class, "RightArmMotor");
+
         imu = new RevIMU(hardwareMap);
         imu.init();
+
         drive = new Drive(leftTop, rightTop, leftBottom, rightBottom);
         gripper = new Gripper(rightServo, leftServo);
-        rightArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        leftArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        gamepadEx2 = new GamepadEx(gamepad2);
+        arm = new Arm(left_arm_motor, right_arm_motor);
+
+        right_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        left_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftTop.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightArm.setDirection(DcMotorSimple.Direction.REVERSE);
+        right_arm_motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
@@ -144,21 +144,6 @@ public class MainOpMode extends OpMode {
         if (gamepad2.b) {
             gripper.Close();
         }
-        if (gamepad2.dpad_up) {
-            leftArm.setPower(ArmPower);
-            rightArm.setPower(ArmPower);
-        } else if (gamepad2.dpad_down) {
-            leftArm.setPower(-0.2);
-            rightArm.setPower(-0.2);
-        } else if (gamepad2.x){
-            leftArm.setPower(-ArmPower);
-            rightArm.setPower(-ArmPower);
-        }
-        else {
-            leftArm.setPower(0.1);
-            rightArm.setPower(0.1);
-        }
-        stop = false;
 
 
         drive.go(gamepad1.left_stick_x, -gamepad1.left_stick_y, deadzone(gamepad1.right_stick_x), speedMultiplayer, -imu.getRotation2d().getRadians());

@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import android.graphics.Point;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -55,8 +57,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 @Config
-@Disabled
-@TeleOp(name = "Arm Test", group = "Iterative OpMode")
+@Autonomous(name = "Arm Test", group = "Iterative OpMode")
 public class ArmTestOpMode extends OpMode {
     // Declare OpMode members.
     private final ElapsedTime runtime = new ElapsedTime();
@@ -67,6 +68,9 @@ public class ArmTestOpMode extends OpMode {
     public static boolean killSwitch = true;
     public static int TOLERANCE = 0;
     public static int position = 0;
+    public static double p = 0.052;
+    public static double i = 0;
+    public static double d = 0;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -110,32 +114,15 @@ public class ArmTestOpMode extends OpMode {
         telemetry.addData("SetPoint", position);
         telemetry.addData("Actual Setpoint", left_arm_motor.getTargetPosition());
         telemetry.addData("Power:", left_arm_motor.getPowerFloat());
-        arm.setBOOMBOOMPOWER(BOOMBOOM);
-        arm.setTOLERANCE(TOLERANCE);
-//        if (gamepad1.a){
-//            arm.idle();
-//        }
-//        else if (gamepad1.y){
-//            arm.top();
-//        }
-//        else if (gamepad1.b){
-//            arm.middle();
-//        }
-//        else if (gamepad1.x){
-//            arm.bottom();
-//        }
-//        arm.update();
+        arm.controller.setPIDF(p,i,d,0);
+
         if (!killSwitch) {
-            arm.boomBoomControl(position);
+            arm.setPosition(position);
+            //arm.boomBoomControl(position);
         } else {
             right_arm_motor.setPower(0);
             left_arm_motor.setPower(0);
         }
-        // Choose to drive using either Tank Mode, or POV Mode
-        // Comment out the method that's not used.  The default below is POV.
-        //right_arm_motor.setPower(gamepad1.left_stick_y);
-        //left_arm_motor.setPower(gamepad1.left_stick_y);
-
     }
 
     /*
