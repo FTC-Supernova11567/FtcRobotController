@@ -31,8 +31,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.gamepad.GamepadEx;
-import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -73,18 +71,19 @@ public class MainOpMode extends OpMode {
     private Arm arm = null;
     private RevIMU imu;
 
-    private double speedMultiplayer = 2;
-    private final double minSpeed = 1;// The speed the robot is at while LT is pressed (in 1-0)
-    private double maxSpeed = 2;
 
-    /*
-     * Code to run ONCE when the driver hits INIT
-     */
+    private final double minSpeed = 1;
+    private final double maxSpeed = 2;// The speed the robot is at while LT is pressed
+    private final double overridePower = 0.5;
+
+    private double speedMultiplayer = 2;
+
     @Override
     public void init() {
-        telemetry.addData("Status", "Initialized");
+
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry = dashboard.getTelemetry();
+
         leftTop = hardwareMap.get(DcMotor.class, "leftTop");
         rightTop = hardwareMap.get(DcMotor.class, "rightTop");
         leftBottom = hardwareMap.get(DcMotor.class, "leftBottom");
@@ -101,12 +100,12 @@ public class MainOpMode extends OpMode {
         gripper = new Gripper(rightServo, leftServo);
         arm = new Arm(left_arm_motor, right_arm_motor);
 
-        right_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        left_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftTop.setDirection(DcMotorSimple.Direction.REVERSE);
         right_arm_motor.setDirection(DcMotorSimple.Direction.REVERSE);
+        right_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        left_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // Tell the driver that initialization is complete.
+
         telemetry.addData("Status", "Initialized");
     }
 
@@ -123,6 +122,8 @@ public class MainOpMode extends OpMode {
     @Override
     public void start() {
         runtime.reset();
+        arm.setZeroPosition();
+
     }
 
     /*
@@ -130,22 +131,43 @@ public class MainOpMode extends OpMode {
      */
     @Override
     public void loop() {
-        // Choose to drive using either Tank Mode, or POV Mode
-        // Comment out the method that's not used.  The default below is POV.
         if (gamepad1.left_trigger > 0.2) {
             speedMultiplayer = minSpeed;
         } else {
             speedMultiplayer = maxSpeed;
         }
 
-        if (gamepad2.a) {
+        if (gamepad2.right_trigger > 0.2) {
             gripper.Open();
         }
-        if (gamepad2.b) {
+        if (gamepad2.left_trigger > 0.2) {
             gripper.Close();
         }
 
+        if (gamepad2.a){
+            arm.ground();
+        }
+        else if (gamepad2.b){
+            arm.bottom();
+        }
+        else if (gamepad2.y){
+            arm.middle();
+        }
+        else if (gamepad2.x){
+            arm.top();
+        }
 
+//        else if (gamepad2.dpad_up){
+//            right_arm_motor.setPower(overridePower);
+//            left_arm_motor.setPower(overridePower);
+//        }
+//
+//        else if (gamepad2.dpad_down){
+//            right_arm_motor.setPower(-overridePower);
+//            left_arm_motor.setPower(-overridePower);
+//        }
+
+        arm.update();
         drive.go(gamepad1.left_stick_x, -gamepad1.left_stick_y, deadzone(gamepad1.right_stick_x), speedMultiplayer, -imu.getRotation2d().getRadians());
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());

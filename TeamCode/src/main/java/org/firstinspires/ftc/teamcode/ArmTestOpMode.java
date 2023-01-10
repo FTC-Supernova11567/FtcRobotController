@@ -29,18 +29,13 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import android.graphics.Point;
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
@@ -64,11 +59,10 @@ public class ArmTestOpMode extends OpMode {
     private DcMotor left_arm_motor = null;
     private DcMotor right_arm_motor = null;
     private Arm arm = null;
-    public static double BOOMBOOM = 0;
+
     public static boolean killSwitch = true;
-    public static int TOLERANCE = 0;
     public static int position = 0;
-    public static double p = 0.052;
+    public static double p = 0.072;
     public static double i = 0;
     public static double d = 0;
 
@@ -84,7 +78,7 @@ public class ArmTestOpMode extends OpMode {
         right_arm_motor = hardwareMap.get(DcMotor.class, "RightArmMotor");
         // Tell the driver that initialization is complete.
         right_arm_motor.setDirection(DcMotorSimple.Direction.REVERSE);
-        right_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        right_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         left_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         arm = new Arm(left_arm_motor, right_arm_motor);
 
@@ -103,6 +97,7 @@ public class ArmTestOpMode extends OpMode {
     @Override
     public void start() {
         runtime.reset();
+        arm.setZeroPosition();
     }
 
     /*
@@ -113,15 +108,17 @@ public class ArmTestOpMode extends OpMode {
         telemetry.addData("Arm Position", left_arm_motor.getCurrentPosition());
         telemetry.addData("SetPoint", position);
         telemetry.addData("Actual Setpoint", left_arm_motor.getTargetPosition());
-        telemetry.addData("Power:", left_arm_motor.getPowerFloat());
+        telemetry.addData("Power:", left_arm_motor.getPower());
         arm.controller.setPIDF(p,i,d,0);
+        arm.setPosition(position);
+
 
         if (!killSwitch) {
-            arm.setPosition(position);
+            arm.update();
             //arm.boomBoomControl(position);
         } else {
-            right_arm_motor.setPower(0);
-            left_arm_motor.setPower(0);
+            right_arm_motor.setPower(0.0);
+            left_arm_motor.setPower(0.0);
         }
     }
 
@@ -131,5 +128,4 @@ public class ArmTestOpMode extends OpMode {
     @Override
     public void stop() {
     }
-
 }

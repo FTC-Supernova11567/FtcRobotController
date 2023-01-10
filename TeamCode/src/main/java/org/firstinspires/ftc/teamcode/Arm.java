@@ -3,29 +3,31 @@ package org.firstinspires.ftc.teamcode;
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.opencv.core.Mat;
 
 public class Arm {
     private DcMotorEx leftArmMotor;
     private  DcMotorEx rightArmMotor;
-    private int TOLERANCE = 0;
-    private double BOOMBOOMPOWER = 0.1;
-    public int[] ticksarray = {0, -20, -50, -100}; //Needs configuration according to encoder ticks
+    public int[] ticksarray = {0 ,85 , 130, 170}; //Needs configuration according to encoder ticks
+    public int position;
+    public double holdingPower;
     private int zero_position = 0;
     //PID Var
 
-    PIDFController controller = new PIDFController(0.05, 0, 0, 0);
+    PIDFController controller = new PIDFController(0.068, 0, 0.0035, 0);
 
-    int state = 0;
-
-    public void setZero_position() {
+//
+// @params:
+//   @return:
+    public void setZeroPosition() {
         this.zero_position = leftArmMotor.getCurrentPosition();
     }
 
+    public void setHoldingPower(double val) {
+        val = holdingPower;
+    }
+
     public int getArmPosition(){
-        return leftArmMotor.getCurrentPosition();
+        return leftArmMotor.getCurrentPosition() - this.zero_position;
     }
 
     public Arm(DcMotor leftArmMotor, DcMotor rightArmMotor) {
@@ -34,42 +36,40 @@ public class Arm {
 
         this.leftArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.rightArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        this.setZero_position();
+        this.setZeroPosition();
+        controller.setTolerance(10);
     }
 
     // Autonomous Functions
-    public void idle() {
-        state = 0;
+    public void ground() {
+        setPosition(zero_position);
     }
 
     public void bottom() {
-        state = 1;
+        setPosition(ticksarray[1]);
     }
 
     public void middle() {
-        state = 2;
+        setPosition(ticksarray[2]);
     }
 
     public void top() {
-        state = 3;
+        setPosition(ticksarray[3]);
     }
 
-    //Non Autonomous Functions
-    public void StateUp(){
-        state++;
+    public void setPosition(int val){
+        position = val;
     }
 
-    public void StateDown(){
-        state--;
-    }
-
-    public void setPosition(int position){
-        leftArmMotor.setPower(controller.calculate(this.getArmPosition(), position));
-        rightArmMotor.setPower( controller.calculate(this.getArmPosition(), position));
-    }
-    public void update() {
-        double power = controller.calculate(leftArmMotor.getCurrentPosition(), zero_position + ticksarray[state]);
-        leftArmMotor.setPower(power);
-        rightArmMotor.setPower(power);
+    public void update(){
+            if (position == zero_position){
+                rightArmMotor.setPower(0);
+                leftArmMotor.setPower(0);
+            }
+            else {
+                double power = controller.calculate(this.getArmPosition(), position);
+                leftArmMotor.setPower(power);
+                rightArmMotor.setPower(power);
+            }
     }
 }
