@@ -29,12 +29,16 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import android.widget.Switch;
+
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
+import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -61,9 +65,21 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 public class AutonomosOpMode extends OpMode {
     // Declare OpMode members.
     private final ElapsedTime runtime = new ElapsedTime();
+
+    private DcMotor leftTop = null;
+    private DcMotor rightTop = null;
+    private DcMotor leftBottom = null;
+    private DcMotor rightBottom = null;
+    private DcMotor right_arm_motor = null;
+    private DcMotor left_arm_motor = null;
+    private Servo rightServo = null;
+    private Servo leftServo = null;
+
+    private Gripper gripper = null;
+    private Arm arm = null;
     private SampleMecanumDrive drive = null;
     private AprilTagDetector aprilTagDetector = null;
-    Trajectory parking = null;
+    private Trajectories trajectories = null;
 
     private int id;
 
@@ -74,18 +90,23 @@ public class AutonomosOpMode extends OpMode {
     public void init() {
         telemetry.addData("Status", "Initialized");
         drive = new SampleMecanumDrive(hardwareMap);
-        try {
-            parking = drive.trajectoryBuilder(new Pose2d())
-                    .forward(25)
-                    .build();
-        } catch (Throwable t) {
-            t.printStackTrace();
+//        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+//        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+//        aprilTagDetector = new AprilTagDetector(camera, hardwareMap, telemetry);
+//        aprilTagDetector.init();
+        leftTop = hardwareMap.get(DcMotor.class, "leftTop");
+        rightTop = hardwareMap.get(DcMotor.class, "rightTop");
+        leftBottom = hardwareMap.get(DcMotor.class, "leftBottom");
+        rightBottom = hardwareMap.get(DcMotor.class, "rightBottom");
+        leftServo = hardwareMap.get(Servo.class, "leftServo");
+        rightServo = hardwareMap.get(Servo.class, "rightServo");
+        left_arm_motor = hardwareMap.get(DcMotor.class, "LeftArmMotor");
+        right_arm_motor = hardwareMap.get(DcMotor.class, "RightArmMotor");
 
-        }
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
-        aprilTagDetector = new AprilTagDetector(camera, hardwareMap, telemetry);
-        aprilTagDetector.init();
+        gripper = new Gripper(rightServo, leftServo);
+        arm = new Arm(left_arm_motor, right_arm_motor);
+        trajectories = new Trajectories(gripper, drive, arm);
+        trajectories.setup();
         telemetry.addData("Status", "Initialized");
     }
 
@@ -103,8 +124,51 @@ public class AutonomosOpMode extends OpMode {
     @Override
     public void start() {
         runtime.reset();
-        id = aprilTagDetector.publishResult();
+//        id = aprilTagDetector.publishResult();
+//        switch (id){
+//            case 1:
+//                drive.followTrajectory(trajectories.barcodCase1);
+//                break;
+//            case 2:
+//                drive.followTrajectory(trajectories.barcodCase2);
+//                break;
+//            case 3:
+//                drive.followTrajectory(trajectories.barcodCase3);
+//                break;
+//        }
         //drive.followTrajectory(parking);
+        Trajectory redbottomright = drive.trajectoryBuilder(new Pose2d(37, 60, Math.toRadians(-90)))
+                //.strafeR
+                .lineToLinearHeading(new Pose2d(37, -12, Math.toRadians(180)))
+                .lineToLinearHeading(new Pose2d(60, -12, Math.toRadians(180)))
+                .addSpatialMarker(new Vector2d(60, -12), () -> {
+                    //open gripper
+                    gripper.Open();
+
+                    //expand ar
+                    arm.middle();
+                    waitSeconds(2);
+
+                    //close gripper
+                    gripper.Close();
+                })
+                .lineToLinearHeading(new Pose2d(23.5, -12, Math.toRadians(-90)))
+                .addSpatialMarker(new Vector2d(23.5, -12), () -> {
+                    arm.middle();
+                    waitSeconds(2);
+                    gripper.Open();
+
+                })
+                .lineToLinearHeading(new Pose2d(60, -12, Math.toRadians(180)))
+                .lineToLinearHeading(new Pose2d(23.5, -12, Math.toRadians(90)))
+                .addSpatialMarker(new Vector2d(23.5, -12), () -> {
+                    arm.top();
+                    waitSeconds(2);
+                    gripper.Open();
+                })
+                .build();
+
+        drive.followTrajectory(redbottomright);
     }
 
     /*
@@ -112,7 +176,7 @@ public class AutonomosOpMode extends OpMode {
      */
     @Override
     public void loop() {
-
+        arm.update();
     }
 
     /*

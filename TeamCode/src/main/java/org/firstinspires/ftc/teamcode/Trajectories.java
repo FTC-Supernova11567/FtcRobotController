@@ -9,23 +9,23 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
 public class Trajectories {
     private final ElapsedTime runtime = new ElapsedTime();
-    private Servo savtashaha;
-    private Servo sabashha;
-    private Gripper emashha;
+    private Gripper gripper;
     public SampleMecanumDrive drive;
-    private Arm abashha;
-    private Trajectory bluebottomleft = null;
-    private Trajectory redlefttop = null;
-    private Trajectory redbottomright = null;
-    private Trajectory bluetopright = null;
+    public Arm arm;
+    public Trajectory bluebottomleft = null;
+    public Trajectory redlefttop = null;
+    public Trajectory redbottomright = null;
+    public Trajectory bluetopright = null;
+    public Trajectory barcodCase1 = null;
+    public Trajectory barcodCase2 = null;
+    public Trajectory barcodCase3 = null;
 
-    public Trajectories(Servo savtashaha, Servo sabashha, Gripper emashha, SampleMecanumDrive drive, Arm abashha) {
-        this.savtashaha = savtashaha;
-        this.sabashha = sabashha;
-        this.emashha = emashha;
+    public Trajectories(Gripper gripper, SampleMecanumDrive drive, Arm arm) {
+        this.gripper = gripper;
         this.drive = drive;
-        this.abashha = abashha;
+        this.arm = arm;
     }
+
     public void setup() {
         try {
             bluebottomleft = drive.trajectoryBuilder(new Pose2d(-37, 60, Math.toRadians(-90)))
@@ -34,28 +34,28 @@ public class Trajectories {
                     .lineToLinearHeading(new Pose2d(-60, 12, Math.toRadians(180)))
                     .addSpatialMarker(new Vector2d(-60, 12), () -> {
                         //open gripper
-                        emashha.Open();
+                        gripper.Open();
 
                         //expand ar
-                        abashha.middle();
+                        arm.middle();
                         waitSeconds(2);
 
                         //close gripper
-                        emashha.Close();
+                        gripper.Close();
                     })
                     .lineToLinearHeading(new Pose2d(-23.5, 12, Math.toRadians(90)))
                     .addSpatialMarker(new Vector2d(-23.5, 12), () -> {
-                        abashha.middle();
+                        arm.middle();
                         waitSeconds(2);
-                        emashha.Open();
+                        gripper.Open();
 
                     })
                     .lineToLinearHeading(new Pose2d(-60, 12, Math.toRadians(180)))
                     .lineToLinearHeading(new Pose2d(-23.5, 12, Math.toRadians(-90)))
                     .addSpatialMarker(new Vector2d(-23.5, 12), () -> {
-                        abashha.top();
+                        arm.top();
                         waitSeconds(2);
-                        emashha.Open();
+                        gripper.Open();
                     })
                     .build();
         } catch (Throwable t) {
@@ -69,28 +69,28 @@ public class Trajectories {
                     .lineToLinearHeading(new Pose2d(60, 12, Math.toRadians(180)))
                     .addSpatialMarker(new Vector2d(60, 12), () -> {
                         //open gripper
-                        emashha.Open();
+                        gripper.Open();
 
                         //expand ar
-                        abashha.middle();
+                        arm.middle();
                         waitSeconds(2);
 
                         //close gripper
-                        emashha.Close();
+                        gripper.Close();
                     })
                     .lineToLinearHeading(new Pose2d(23.5, 12, Math.toRadians(90)))
                     .addSpatialMarker(new Vector2d(23.5, 12), () -> {
-                        abashha.middle();
+                        arm.middle();
                         waitSeconds(2);
-                        emashha.Open();
+                        gripper.Open();
 
                     })
                     .lineToLinearHeading(new Pose2d(60, 12, Math.toRadians(180)))
                     .lineToLinearHeading(new Pose2d(23.5, 12, Math.toRadians(-90)))
                     .addSpatialMarker(new Vector2d(23.5, 12), () -> {
-                        abashha.top();
+                        arm.top();
                         waitSeconds(2);
-                        emashha.Open();
+                        gripper.Open();
                     })
                     .build();
 
@@ -100,28 +100,28 @@ public class Trajectories {
                     .lineToLinearHeading(new Pose2d(60, -12, Math.toRadians(180)))
                     .addSpatialMarker(new Vector2d(60, -12), () -> {
                         //open gripper
-                        emashha.Open();
+                        gripper.Open();
 
                         //expand ar
-                        abashha.middle();
+                        arm.middle();
                         waitSeconds(2);
 
                         //close gripper
-                        emashha.Close();
+                        gripper.Close();
                     })
                     .lineToLinearHeading(new Pose2d(23.5, -12, Math.toRadians(-90)))
                     .addSpatialMarker(new Vector2d(23.5, -12), () -> {
-                        abashha.middle();
+                        arm.middle();
                         waitSeconds(2);
-                        emashha.Open();
+                        gripper.Open();
 
                     })
                     .lineToLinearHeading(new Pose2d(60, -12, Math.toRadians(180)))
                     .lineToLinearHeading(new Pose2d(23.5, -12, Math.toRadians(90)))
                     .addSpatialMarker(new Vector2d(23.5, -12), () -> {
-                        abashha.top();
+                        arm.top();
                         waitSeconds(2);
-                        emashha.Open();
+                        gripper.Open();
                     })
                     .build();
             bluetopright = drive.trajectoryBuilder(new Pose2d(-37, -60, Math.toRadians(-90)))
@@ -130,29 +130,50 @@ public class Trajectories {
                     .lineToLinearHeading(new Pose2d(-60, -12, Math.toRadians(180)))
                     .addSpatialMarker(new Vector2d(-60, -12), () -> {
                         //open gripper
-                        emashha.Open();
+                        gripper.Open();
 
                         //expand ar
-                        abashha.middle();
+                        arm.middle();
                         waitSeconds(2);
 
                         //close gripper
-                        emashha.Close();
+                        gripper.Close();
                     })
                     .lineToLinearHeading(new Pose2d(-23.5, -12, Math.toRadians(-90)))
                     .addSpatialMarker(new Vector2d(-23.5, -12), () -> {
-                        abashha.middle();
+                        arm.middle();
                         waitSeconds(2);
-                        emashha.Open();
+                        gripper.Open();
 
                     })
                     .lineToLinearHeading(new Pose2d(-60, -12, Math.toRadians(180)))
                     .lineToLinearHeading(new Pose2d(-23.5, -12, Math.toRadians(90)))
                     .addSpatialMarker(new Vector2d(-23.5, -12), () -> {
-                        abashha.top();
+                        arm.top();
                         waitSeconds(2);
-                        emashha.Open();
+                        gripper.Open();
                     })
+                    .build();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        try {
+            barcodCase1 = drive.trajectoryBuilder(new Pose2d(37, 60, Math.toRadians(-90)))
+                    .lineToLinearHeading(new Pose2d(37, 14, Math.toRadians(-90)))
+                    .build();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        try {
+            barcodCase2 = drive.trajectoryBuilder(new Pose2d(37, 60, Math.toRadians(-90)))
+                    .lineToLinearHeading(new Pose2d(37, 14, Math.toRadians(-90)))
+                    .build();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        try {
+            barcodCase3 = drive.trajectoryBuilder(new Pose2d(37, 60, Math.toRadians(-90)))
+                    .lineToLinearHeading(new Pose2d(37, 14, Math.toRadians(-90)))
                     .build();
         } catch (Throwable t) {
             t.printStackTrace();

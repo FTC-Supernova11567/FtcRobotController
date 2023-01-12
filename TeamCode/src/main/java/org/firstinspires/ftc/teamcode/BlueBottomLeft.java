@@ -73,7 +73,7 @@ public class BlueBottomLeft extends OpMode {
         sabashha = hardwareMap.get(Servo.class, "GripperServo2");
         emashha = new Gripper(sabashha, savtashaha);
         drive = new SampleMecanumDrive(hardwareMap);
-        trajectories = new Trajectories(savtashaha, sabashha, emashha, drive, abashha);
+        trajectories = new Trajectories(emashha, drive, abashha);
         telemetry.addData("Status", "Initialized");
         trajectories.setup();
     }
