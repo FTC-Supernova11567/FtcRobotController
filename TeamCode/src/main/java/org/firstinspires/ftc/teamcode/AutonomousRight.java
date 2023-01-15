@@ -29,13 +29,17 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -50,18 +54,22 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
-
-@Autonomous(name = "BlueBottomLeft", group = "Autonomous")
-public class BlueBottomLeft extends OpMode {
-    // Declare OpMode members.
+@Disabled
+@TeleOp(name = "BlueRight", group = "")
+public class AutonomousRight extends OpMode {
     private final ElapsedTime runtime = new ElapsedTime();
-    private Servo savtashaha = null;
-    private Servo sabashha = null;
-    private Gripper emashha = null;
+
+    private DcMotor right_arm_motor = null;
+    private DcMotor left_arm_motor = null;
+    private Servo rightServo = null;
+    private Servo leftServo = null;
+
+    private Gripper gripper = null;
+    private Arm arm = null;
     private SampleMecanumDrive drive = null;
-    private Arm abashha = null;
-    private Trajectory bluebottomleft = null;
-    private Trajectories trajectories;
+    private AprilTagDetector aprilTagDetector = null;
+
+    private int id;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -69,13 +77,19 @@ public class BlueBottomLeft extends OpMode {
     @Override
     public void init() {
         telemetry.addData("Status", "Initialized");
-        savtashaha = hardwareMap.get(Servo.class, "GripperServo");
-        sabashha = hardwareMap.get(Servo.class, "GripperServo2");
-        emashha = new Gripper(sabashha, savtashaha);
         drive = new SampleMecanumDrive(hardwareMap);
-        trajectories = new Trajectories(emashha, drive, abashha);
+//        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+//        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+//        aprilTagDetector = new AprilTagDetector(camera, hardwareMap, telemetry);
+//        aprilTagDetector.init();
+        leftServo = hardwareMap.get(Servo.class, "leftServo");
+        rightServo = hardwareMap.get(Servo.class, "rightServo");
+        left_arm_motor = hardwareMap.get(DcMotor.class, "LeftArmMotor");
+        right_arm_motor = hardwareMap.get(DcMotor.class, "RightArmMotor");
+
+        gripper = new Gripper(rightServo, leftServo);
+        arm = new Arm(left_arm_motor, right_arm_motor);
         telemetry.addData("Status", "Initialized");
-        trajectories.setup();
     }
 
     /*
@@ -83,6 +97,7 @@ public class BlueBottomLeft extends OpMode {
      */
     @Override
     public void init_loop() {
+//        aprilTagDetector.detectTag();
     }
 
     /*
@@ -91,7 +106,41 @@ public class BlueBottomLeft extends OpMode {
     @Override
     public void start() {
         runtime.reset();
-        trajectories.drive.followTrajectory(bluebottomleft);
+//        id = aprilTagDetector.publishResult();
+//        switch (id){
+//            case 1:
+//                drive.followTrajectory(trajectories.barcodCase1);
+//                break;
+//            case 2:
+//                drive.followTrajectory(trajectories.barcodCase2);
+//                break;
+//            case 3:
+//                drive.followTrajectory(trajectories.barcodCase3);
+//                break;
+//        }
+        TrajectorySequence blueRight = drive.trajectorySequenceBuilder(new Pose2d(-37, 60, Math.toRadians(-90)))
+                .lineToLinearHeading(new Pose2d(-37, 24, Math.toRadians(0)))
+                .addSpatialMarker(new Vector2d(-37, 24), () -> {
+//                    arm.middle();
+//                    waitSeconds(2);
+//                    gripper.Open();
+                })
+                .lineToLinearHeading(new Pose2d(-37, 12, Math.toRadians(180)))
+                .lineToLinearHeading(new Pose2d(-60, 12, Math.toRadians(180)))
+                .addSpatialMarker(new Vector2d(-60, 12), () -> {
+//                                            arm.middle();
+//                                            waitSeconds(2);
+//                                            gripper.Close();
+                })
+                .lineToLinearHeading(new Pose2d(-23.5, 12, Math.toRadians(-90)))
+                .addSpatialMarker(new Vector2d(-23.5, 12), () -> {
+//                    arm.top();
+//                    waitSeconds(2);
+//                    gripper.Open();
+                })
+                .build();
+
+        drive.followTrajectorySequence(blueRight);
     }
 
     /*
@@ -99,7 +148,7 @@ public class BlueBottomLeft extends OpMode {
      */
     @Override
     public void loop() {
-
+        arm.update();
     }
 
     /*
@@ -107,5 +156,13 @@ public class BlueBottomLeft extends OpMode {
      */
     @Override
     public void stop() {
+    }
+
+    public void waitSeconds(double seconds) {
+        try {
+            Thread.sleep((long) (1000 * seconds));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

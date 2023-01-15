@@ -65,7 +65,7 @@ public class AprilTagDetector {
         telemetry.setMsTransmissionInterval(50);
     }
 
-    public void detectTag() {
+    public void find_id() {
         ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
 
         if (currentDetections.size() != 0) {

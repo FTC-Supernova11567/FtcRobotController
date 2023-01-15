@@ -29,23 +29,21 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import android.widget.Switch;
-
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.arcrobotics.ftclib.hardware.RevIMU;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -61,15 +59,10 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name = "Autonomos", group = "")
-public class AutonomosOpMode extends OpMode {
-    // Declare OpMode members.
+@TeleOp(name = "LeftTrajectoryTesting", group = "")
+public class AutonomousLeft extends OpMode {
     private final ElapsedTime runtime = new ElapsedTime();
 
-    private DcMotor leftTop = null;
-    private DcMotor rightTop = null;
-    private DcMotor leftBottom = null;
-    private DcMotor rightBottom = null;
     private DcMotor right_arm_motor = null;
     private DcMotor left_arm_motor = null;
     private Servo rightServo = null;
@@ -79,7 +72,6 @@ public class AutonomosOpMode extends OpMode {
     private Arm arm = null;
     private SampleMecanumDrive drive = null;
     private AprilTagDetector aprilTagDetector = null;
-    private Trajectories trajectories = null;
 
     private int id;
 
@@ -94,19 +86,19 @@ public class AutonomosOpMode extends OpMode {
 //        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
 //        aprilTagDetector = new AprilTagDetector(camera, hardwareMap, telemetry);
 //        aprilTagDetector.init();
-        leftTop = hardwareMap.get(DcMotor.class, "leftTop");
-        rightTop = hardwareMap.get(DcMotor.class, "rightTop");
-        leftBottom = hardwareMap.get(DcMotor.class, "leftBottom");
-        rightBottom = hardwareMap.get(DcMotor.class, "rightBottom");
         leftServo = hardwareMap.get(Servo.class, "leftServo");
         rightServo = hardwareMap.get(Servo.class, "rightServo");
         left_arm_motor = hardwareMap.get(DcMotor.class, "LeftArmMotor");
         right_arm_motor = hardwareMap.get(DcMotor.class, "RightArmMotor");
 
+        right_arm_motor.setDirection(DcMotorSimple.Direction.REVERSE);
+        right_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        left_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         gripper = new Gripper(rightServo, leftServo);
         arm = new Arm(left_arm_motor, right_arm_motor);
-        trajectories = new Trajectories(gripper, drive, arm);
-        trajectories.setup();
+
+        arm.setZeroPosition();
         telemetry.addData("Status", "Initialized");
     }
 
@@ -115,7 +107,7 @@ public class AutonomosOpMode extends OpMode {
      */
     @Override
     public void init_loop() {
-        aprilTagDetector.detectTag();
+//        aprilTagDetector.detectTag();
     }
 
     /*
@@ -123,7 +115,10 @@ public class AutonomosOpMode extends OpMode {
      */
     @Override
     public void start() {
+        gripper.Close();
+        waitSeconds(0.5);
         runtime.reset();
+        arm.middle();
 //        id = aprilTagDetector.publishResult();
 //        switch (id){
 //            case 1:
@@ -136,47 +131,25 @@ public class AutonomosOpMode extends OpMode {
 //                drive.followTrajectory(trajectories.barcodCase3);
 //                break;
 //        }
-        //drive.followTrajectory(parking);
-        Trajectory redbottomright = drive.trajectoryBuilder(new Pose2d(37, 60, Math.toRadians(-90)))
-                //.strafeR
-                .lineToLinearHeading(new Pose2d(37, -12, Math.toRadians(180)))
-                .lineToLinearHeading(new Pose2d(60, -12, Math.toRadians(180)))
-                .addSpatialMarker(new Vector2d(60, -12), () -> {
-                    //open gripper
+        TrajectorySequence blueLeft = drive.trajectorySequenceBuilder(new Pose2d())
+                .forward(40.5)
+                .turn(Math.toRadians(-90))
+                .back(2)
+                .addTemporalMarker(6, () -> {
+                    // This marker runs two seconds into the trajectory
                     gripper.Open();
-
-                    //expand ar
-                    arm.middle();
-                    waitSeconds(2);
-
-                    //close gripper
-                    gripper.Close();
+                    // Run your action in here!
                 })
-                .lineToLinearHeading(new Pose2d(23.5, -12, Math.toRadians(-90)))
-                .addSpatialMarker(new Vector2d(23.5, -12), () -> {
-                    arm.middle();
-                    waitSeconds(2);
-                    gripper.Open();
 
-                })
-                .lineToLinearHeading(new Pose2d(60, -12, Math.toRadians(180)))
-                .lineToLinearHeading(new Pose2d(23.5, -12, Math.toRadians(90)))
-                .addSpatialMarker(new Vector2d(23.5, -12), () -> {
-                    arm.top();
-                    waitSeconds(2);
-                    gripper.Open();
-                })
                 .build();
-
-        drive.followTrajectory(redbottomright);
+        drive.followTrajectorySequenceAsync(blueLeft);
     }
 
-    /*
-     * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
-     */
     @Override
     public void loop() {
+        drive.update();
         arm.update();
+        telemetry.addData("arm_position", left_arm_motor.getPower());
     }
 
     /*
