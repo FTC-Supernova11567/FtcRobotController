@@ -62,10 +62,10 @@ public class ArmTestOpMode extends OpMode {
 
     public static boolean killSwitch = true;
     public static int position = 0;
-    public static double p = 0.072;
+    public static double p = 0.07;
     public static double i = 0;
-    public static double d = 0;
-
+    public static double d = 0.00025;
+    public static double f = 0;
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -109,7 +109,7 @@ public class ArmTestOpMode extends OpMode {
         telemetry.addData("SetPoint", position);
         telemetry.addData("Actual Setpoint", left_arm_motor.getTargetPosition());
         telemetry.addData("Power:", left_arm_motor.getPower());
-        arm.controller.setPIDF(p,i,d,0);
+        arm.controller.setPIDF(p,i,d,f);
         arm.setPosition(position);
 
 

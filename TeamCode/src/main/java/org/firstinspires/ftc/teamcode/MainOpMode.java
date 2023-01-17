@@ -74,7 +74,6 @@ public class MainOpMode extends OpMode {
 
     private final double minSpeed = 1;
     private final double maxSpeed = 2;// The speed the robot is at while LT is pressed
-    private final double overridePower = 0.5;
 
     private double speedMultiplayer = 2;
 
@@ -101,6 +100,7 @@ public class MainOpMode extends OpMode {
         arm = new Arm(left_arm_motor, right_arm_motor);
 
         leftTop.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftBottom.setDirection(DcMotorSimple.Direction.REVERSE);
         right_arm_motor.setDirection(DcMotorSimple.Direction.REVERSE);
         right_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         left_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

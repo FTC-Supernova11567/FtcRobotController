@@ -30,7 +30,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.constraints.TranslationalVelocityConstraint;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -40,10 +40,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
-
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequenceBuilder;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -99,6 +96,7 @@ public class AutonomousLeft extends OpMode {
         arm = new Arm(left_arm_motor, right_arm_motor);
 
         arm.setZeroPosition();
+//        arm.controller.setTolerance(7);
         telemetry.addData("Status", "Initialized");
     }
 
@@ -118,7 +116,6 @@ public class AutonomousLeft extends OpMode {
         gripper.Close();
         waitSeconds(0.5);
         runtime.reset();
-        arm.middle();
 //        id = aprilTagDetector.publishResult();
 //        switch (id){
 //            case 1:
@@ -131,16 +128,18 @@ public class AutonomousLeft extends OpMode {
 //                drive.followTrajectory(trajectories.barcodCase3);
 //                break;
 //        }
-        TrajectorySequence blueLeft = drive.trajectorySequenceBuilder(new Pose2d())
-                .forward(40.5)
-                .turn(Math.toRadians(-90))
-                .back(2)
-                .addTemporalMarker(6, () -> {
-                    // This marker runs two seconds into the trajectory
-                    gripper.Open();
-                    // Run your action in here!
+        TrajectorySequence blueLeft = drive.trajectorySequenceBuilder(new Pose2d(-35, -58, Math.toRadians(90)))
+                .setVelConstraint(new TranslationalVelocityConstraint(15))
+                .forward(46)
+                .waitSeconds(2)
+                .addDisplacementMarker(() ->{
+                    arm.top();
                 })
-
+                .waitSeconds(3)
+                .turn(Math.toRadians(-45))
+                .addTemporalMarker(17, () -> {
+                    gripper.Open();
+                })
                 .build();
         drive.followTrajectorySequenceAsync(blueLeft);
     }

@@ -10,6 +10,13 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+/**
+ * Drive Class
+ * class for all of the drive commands
+ * this class is for mecanum wheels
+ * @see Gripper
+ * @see Arm
+ */
 public class Drive {
     private final ElapsedTime runtime = new ElapsedTime();
     private DcMotor leftTop = null;
@@ -17,6 +24,14 @@ public class Drive {
     private DcMotor leftBottom = null;
     private DcMotor rightBottom = null;
 
+
+    /**
+     * Drive class constructor
+     * @param leftTop leftTop DCMotor
+     * @param rightTop rightTop DCMotor
+     * @param leftBottom leftBottom DCMotor
+     * @param rightBottom rightBottom DCMotor
+     */
     public Drive(DcMotor leftTop, DcMotor rightTop, DcMotor leftBottom, DcMotor rightBottom) {
         this.leftTop = leftTop;
         this.rightTop = rightTop;
@@ -24,6 +39,17 @@ public class Drive {
         this.rightBottom = rightBottom;
     }
 
+
+    /**
+     * Funtion to Calculate the required motor power of all motors and send it to them
+     * This Function needs to be called in the Loop section of the OpMode.
+     * Bot heading is measured in Radians (-imu.getRotation2d().getRadians())
+     * @param x Controller right joystick X
+     * @param y Controller left joystick Y
+     * @param rx Controller right joystick X
+     * @param speedmultiplayer Drive Speed Multiplayer
+     * @param botHeading Robot Heading (-imu.getRotation2d().getRadians())
+     */
     public void go(double x, double y, double rx, double speedmultiplayer, double botHeading) {
         // Read inverse IMU heading, as the IMU heading is CW positive
 
@@ -45,8 +71,4 @@ public class Drive {
         rightTop.setPower(frontRightPower);
         rightBottom.setPower(backRightPower);
     }
-
-    // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
-    // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
-    // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
 }
