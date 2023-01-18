@@ -52,14 +52,14 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
-@Disabled
+
 @TeleOp(name = "VisionTestingOpMode", group = "Iterative OpMode")
 public class VisionTestingOpMode extends OpMode {
     // Declare OpMode members.
     private final ElapsedTime runtime = new ElapsedTime();
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
-    private AprilTagDetector aprilTagDetector;
+    private  BarcodDetector barcodDetector;
 
 
     /*
@@ -79,10 +79,10 @@ public class VisionTestingOpMode extends OpMode {
 
             }
         };
+        //Initialize motor and other bullshit
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
-        aprilTagDetector = new AprilTagDetector(camera, hardwareMap, telemetry);
-        aprilTagDetector.init();
+        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId);
+        // Tell the driver that initialization is complete.
         camera.openCameraDeviceAsync(listener);
         telemetry.addData("Status", "Initialized");
     }
@@ -109,7 +109,7 @@ public class VisionTestingOpMode extends OpMode {
      */
     @Override
     public void loop() {
-        aprilTagDetector.find_id();
+        barcodDetector.find_id();
         telemetry.addData("Status", "Run Time: " + runtime.toString());
     }
 
