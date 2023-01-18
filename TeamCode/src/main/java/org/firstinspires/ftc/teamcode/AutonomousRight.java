@@ -29,18 +29,17 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.arcrobotics.ftclib.geometry.Translation2d;
-import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.arcrobotics.ftclib.kinematics.wpilibkinematics.MecanumDriveKinematics;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.arcrobotics.ftclib.drivebase.MecanumDrive;
-import com.arcrobotics.ftclib.hardware.RevIMU;
+
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -56,20 +55,21 @@ import com.arcrobotics.ftclib.hardware.RevIMU;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 @Disabled
-@TeleOp(name = "drive", group = "Iterative OpMode")
-public class DriveOpMode extends OpMode {
-    // Declare OpMode members.
+@TeleOp(name = "BlueRight", group = "")
+public class AutonomousRight extends OpMode {
     private final ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftTop = null;
-    private DcMotor rightTop = null;
-    private DcMotor leftBottom = null;
-    private DcMotor rightBottom = null;
-    private Drive drive = null;
-    private RevIMU imu;
 
-    private double speedMultiplayer = 2;
-    private final double minSpeed = 0.5;// The speed the robot is at while LT is pressed (in 1-0)
-    private final double maxSpeed = 1;
+    private DcMotor right_arm_motor = null;
+    private DcMotor left_arm_motor = null;
+    private Servo rightServo = null;
+    private Servo leftServo = null;
+
+    private Gripper gripper = null;
+    private Arm arm = null;
+    private SampleMecanumDrive drive = null;
+    private AprilTagDetector aprilTagDetector = null;
+
+    private int id;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -77,17 +77,18 @@ public class DriveOpMode extends OpMode {
     @Override
     public void init() {
         telemetry.addData("Status", "Initialized");
+        drive = new SampleMecanumDrive(hardwareMap);
+//        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+//        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+//        aprilTagDetector = new AprilTagDetector(camera, hardwareMap, telemetry);
+//        aprilTagDetector.init();
+        leftServo = hardwareMap.get(Servo.class, "leftServo");
+        rightServo = hardwareMap.get(Servo.class, "rightServo");
+        left_arm_motor = hardwareMap.get(DcMotor.class, "LeftArmMotor");
+        right_arm_motor = hardwareMap.get(DcMotor.class, "RightArmMotor");
 
-        leftTop = hardwareMap.get(DcMotor.class, "leftTop");
-        rightTop = hardwareMap.get(DcMotor.class, "rightTop");
-        leftBottom = hardwareMap.get(DcMotor.class, "leftBottom");
-        rightBottom = hardwareMap.get(DcMotor.class, "rightBottom");
-        imu = new RevIMU(hardwareMap);
-        imu.init();
-        drive = new Drive(leftTop,rightTop,leftBottom,rightBottom);
-
-        leftTop.setDirection(DcMotorSimple.Direction.REVERSE);
-        // Tell the driver that initialization is complete.
+        gripper = new Gripper(rightServo, leftServo);
+        arm = new Arm(left_arm_motor, right_arm_motor);
         telemetry.addData("Status", "Initialized");
     }
 
@@ -96,6 +97,7 @@ public class DriveOpMode extends OpMode {
      */
     @Override
     public void init_loop() {
+//        aprilTagDetector.detectTag();
     }
 
     /*
@@ -104,6 +106,41 @@ public class DriveOpMode extends OpMode {
     @Override
     public void start() {
         runtime.reset();
+//        id = aprilTagDetector.publishResult();
+//        switch (id){
+//            case 1:
+//                drive.followTrajectory(trajectories.barcodCase1);
+//                break;
+//            case 2:
+//                drive.followTrajectory(trajectories.barcodCase2);
+//                break;
+//            case 3:
+//                drive.followTrajectory(trajectories.barcodCase3);
+//                break;
+//        }
+        TrajectorySequence blueRight = drive.trajectorySequenceBuilder(new Pose2d(-37, 60, Math.toRadians(-90)))
+                .lineToLinearHeading(new Pose2d(-37, 24, Math.toRadians(0)))
+                .addSpatialMarker(new Vector2d(-37, 24), () -> {
+//                    arm.middle();
+//                    waitSeconds(2);
+//                    gripper.Open();
+                })
+                .lineToLinearHeading(new Pose2d(-37, 12, Math.toRadians(180)))
+                .lineToLinearHeading(new Pose2d(-60, 12, Math.toRadians(180)))
+                .addSpatialMarker(new Vector2d(-60, 12), () -> {
+//                                            arm.middle();
+//                                            waitSeconds(2);
+//                                            gripper.Close();
+                })
+                .lineToLinearHeading(new Pose2d(-23.5, 12, Math.toRadians(-90)))
+                .addSpatialMarker(new Vector2d(-23.5, 12), () -> {
+//                    arm.top();
+//                    waitSeconds(2);
+//                    gripper.Open();
+                })
+                .build();
+
+        drive.followTrajectorySequence(blueRight);
     }
 
     /*
@@ -111,21 +148,7 @@ public class DriveOpMode extends OpMode {
      */
     @Override
     public void loop() {
-        // Choose to drive using either Tank Mode, or POV Mode
-        // Comment out the method that's not used.  The default below is POV.
-        if (gamepad1.left_trigger > 0.2){
-            speedMultiplayer = minSpeed;
-        }
-        else{
-            speedMultiplayer = maxSpeed;
-        }
-
-        // POV Mode uses left stick to go forward, and right stick to turn.
-        // - This uses basic math to combine motions and is easier to drive straight.
-        drive.go(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, speedMultiplayer, imu.getRotation2d().getRadians());
-        // Show the elapsed game time and wheel power.
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("Status", "Heading: " + imu.getRotation2d().getDegrees());
+        arm.update();
     }
 
     /*
@@ -135,4 +158,11 @@ public class DriveOpMode extends OpMode {
     public void stop() {
     }
 
+    public void waitSeconds(double seconds) {
+        try {
+            Thread.sleep((long) (1000 * seconds));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 }

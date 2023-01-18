@@ -29,15 +29,18 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.hardware.RevIMU;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.trajectory.constraints.TranslationalVelocityConstraint;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
+import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequenceBuilder;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -53,59 +56,47 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Config
-@TeleOp(name = "mainOpMode", group = "Iterative OpMode")
-public class MainOpMode extends OpMode {
-    // Declare OpMode members.
+@TeleOp(name = "LeftTrajectoryTesting", group = "")
+public class AutonomousLeft extends OpMode {
     private final ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftTop = null;
-    private DcMotor rightTop = null;
-    private DcMotor leftBottom = null;
-    private DcMotor rightBottom = null;
+
     private DcMotor right_arm_motor = null;
     private DcMotor left_arm_motor = null;
     private Servo rightServo = null;
     private Servo leftServo = null;
+
     private Gripper gripper = null;
-    private Drive drive = null;
     private Arm arm = null;
-    private RevIMU imu;
+    private SampleMecanumDrive drive = null;
+    private AprilTagDetector aprilTagDetector = null;
 
+    private int id;
 
-    private final double minSpeed = 1;
-    private final double maxSpeed = 2;// The speed the robot is at while LT is pressed
-
-    private double speedMultiplayer = 2;
-
+    /*
+     * Code to run ONCE when the driver hits INIT
+     */
     @Override
     public void init() {
-
-        FtcDashboard dashboard = FtcDashboard.getInstance();
-        telemetry = dashboard.getTelemetry();
-
-        leftTop = hardwareMap.get(DcMotor.class, "leftTop");
-        rightTop = hardwareMap.get(DcMotor.class, "rightTop");
-        leftBottom = hardwareMap.get(DcMotor.class, "leftBottom");
-        rightBottom = hardwareMap.get(DcMotor.class, "rightBottom");
+        telemetry.addData("Status", "Initialized");
+        drive = new SampleMecanumDrive(hardwareMap);
+//        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+//        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+//        aprilTagDetector = new AprilTagDetector(camera, hardwareMap, telemetry);
+//        aprilTagDetector.init();
         leftServo = hardwareMap.get(Servo.class, "leftServo");
         rightServo = hardwareMap.get(Servo.class, "rightServo");
         left_arm_motor = hardwareMap.get(DcMotor.class, "LeftArmMotor");
         right_arm_motor = hardwareMap.get(DcMotor.class, "RightArmMotor");
 
-        imu = new RevIMU(hardwareMap);
-        imu.init();
-
-        drive = new Drive(leftTop, rightTop, leftBottom, rightBottom);
-        gripper = new Gripper(rightServo, leftServo);
-        arm = new Arm(left_arm_motor, right_arm_motor);
-
-        leftTop.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftBottom.setDirection(DcMotorSimple.Direction.REVERSE);
         right_arm_motor.setDirection(DcMotorSimple.Direction.REVERSE);
         right_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         left_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        gripper = new Gripper(rightServo, leftServo);
+        arm = new Arm(left_arm_motor, right_arm_motor);
 
+        arm.setZeroPosition();
+//        arm.controller.setTolerance(7);
         telemetry.addData("Status", "Initialized");
     }
 
@@ -114,6 +105,7 @@ public class MainOpMode extends OpMode {
      */
     @Override
     public void init_loop() {
+//        aprilTagDetector.detectTag();
     }
 
     /*
@@ -121,58 +113,42 @@ public class MainOpMode extends OpMode {
      */
     @Override
     public void start() {
+        gripper.Close();
+        waitSeconds(0.5);
         runtime.reset();
-        arm.setZeroPosition();
-
+//        id = aprilTagDetector.publishResult();
+//        switch (id){
+//            case 1:
+//                drive.followTrajectory(trajectories.barcodCase1);
+//                break;
+//            case 2:
+//                drive.followTrajectory(trajectories.barcodCase2);
+//                break;
+//            case 3:
+//                drive.followTrajectory(trajectories.barcodCase3);
+//                break;
+//        }
+        TrajectorySequence blueLeft = drive.trajectorySequenceBuilder(new Pose2d(-35, -58, Math.toRadians(90)))
+                .setVelConstraint(new TranslationalVelocityConstraint(15))
+                .forward(46)
+                .waitSeconds(2)
+                .addDisplacementMarker(() ->{
+                    arm.top();
+                })
+                .waitSeconds(3)
+                .turn(Math.toRadians(-45))
+                .addTemporalMarker(17, () -> {
+                    gripper.Open();
+                })
+                .build();
+        drive.followTrajectorySequenceAsync(blueLeft);
     }
 
-    /*
-     * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
-     */
     @Override
     public void loop() {
-        if (gamepad1.left_trigger > 0.2) {
-            speedMultiplayer = minSpeed;
-        } else {
-            speedMultiplayer = maxSpeed;
-        }
-
-        if (gamepad2.right_trigger > 0.2) {
-            gripper.Open();
-        }
-        if (gamepad2.left_trigger > 0.2) {
-            gripper.Close();
-        }
-
-        if (gamepad2.a){
-            arm.ground();
-        }
-        else if (gamepad2.b){
-            arm.bottom();
-        }
-        else if (gamepad2.y){
-            arm.middle();
-        }
-        else if (gamepad2.x){
-            arm.top();
-        }
-
-//        else if (gamepad2.dpad_up){
-//            right_arm_motor.setPower(overridePower);
-//            left_arm_motor.setPower(overridePower);
-//        }
-//
-//        else if (gamepad2.dpad_down){
-//            right_arm_motor.setPower(-overridePower);
-//            left_arm_motor.setPower(-overridePower);
-//        }
-
+        drive.update();
         arm.update();
-        drive.go(gamepad1.left_stick_x, -gamepad1.left_stick_y, deadzone(gamepad1.right_stick_x), speedMultiplayer, -imu.getRotation2d().getRadians());
-        // Show the elapsed game time and wheel power.
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("Degrees", leftServo.getPosition());
-        telemetry.addData("Status", "Heading: " + imu.getRotation2d().getDegrees());
+        telemetry.addData("arm_position", left_arm_motor.getPower());
     }
 
     /*
@@ -182,11 +158,11 @@ public class MainOpMode extends OpMode {
     public void stop() {
     }
 
-    public double deadzone(double val) {
-        if (val < 0.05 && val > -0.05) {
-            return 0;
+    public void waitSeconds(double seconds) {
+        try {
+            Thread.sleep((long) (1000 * seconds));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        return val;
     }
-
 }

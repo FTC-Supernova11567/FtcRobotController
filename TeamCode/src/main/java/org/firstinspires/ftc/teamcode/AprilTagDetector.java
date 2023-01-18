@@ -1,44 +1,21 @@
-/*
- * Copyright (c) 2021 OpenFTC Team
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.teamcode.AprilTagDetectionPipeline;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvInternalCamera;
+
 import java.util.ArrayList;
 
-public class BarcodDetector {
-    //INTRODUCE VARIABLES HERE
-
+public class AprilTagDetector {
     OpenCvCamera camera;
-
+    HardwareMap hardwareMap;
+    Telemetry telemetry;
+    org.firstinspires.ftc.teamcode.AprilTagDetectionPipeline aprilTagDetectionPipeline;
 
     static final double FEET_PER_METER = 3.28084;
 
@@ -46,47 +23,48 @@ public class BarcodDetector {
     // UNITS ARE PIXELS
     // NOTE: this calibration is for the C920 webcam at 800x448.
     // You will need to do your own calibration for other configurations!
-    private final double fx = 578.272;
-    private final double fy = 578.272;
-    private final double cx = 402.145;
-    private final double cy = 221.506;
-
-    private final double tagsize = 0.166;
-
-    private AprilTagDetectionPipeline aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
+    double fx = 578.272;
+    double fy = 578.272;
+    double cx = 402.145;
+    double cy = 221.506;
 
     // UNITS ARE METERS
-
+    double tagsize = 0.166;
 
     // Tag ID 1,2,3 from the 36h11 family
     /*EDIT IF NEEDED!!!*/
 
-    private int LEFT = 1;
-    private int MIDDLE = 2;
-    private int RIGHT = 3;
+    int LEFT = 1;
+    int MIDDLE = 2;
+    int RIGHT = 3;
 
     AprilTagDetection tagOfInterest = null;
 
-
-    //For Debugging
-    private Telemetry telemetry;
-
-
-    public BarcodDetector(OpenCvCamera camera, Telemetry telemetry) {
+    public AprilTagDetector(OpenCvCamera camera, HardwareMap hardwareMap, Telemetry telemetry) {
         this.camera = camera;
         this.telemetry = telemetry;
+        this.hardwareMap = hardwareMap;
     }
 
-    //telemetry.setMsTransmissionInterval(50);
+    public void init() {
+        aprilTagDetectionPipeline = new org.firstinspires.ftc.teamcode.AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
 
+        camera.setPipeline(aprilTagDetectionPipeline);
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+                camera.startStreaming(800, 448, OpenCvCameraRotation.UPRIGHT);
+            }
 
-    //HARDWARE MAPPING HERE etc.
+            @Override
+            public void onError(int errorCode) {
 
+            }
+        });
 
-    /*
-     * The INIT-loop:
-     * This REPLACES waitForStart!
-     */
+        telemetry.setMsTransmissionInterval(50);
+    }
+
     public void find_id() {
         ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
 
@@ -126,20 +104,23 @@ public class BarcodDetector {
             }
 
         }
-        telemetry.update();
+        try {
+            Thread.sleep(20);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
 
-        if(tagOfInterest !=null)
-    {
-        telemetry.addLine("Tag snapshot:\n");
-        tagToTelemetry(tagOfInterest);
-        telemetry.update();
+    public int publishResult() {
+        if (tagOfInterest != null) {
+            telemetry.addLine("Tag snapshot:\n");
+            tagToTelemetry(tagOfInterest);
+        } else {
+            telemetry.addLine("No tag snapshot available, it was never sighted during the init loop :(");
+            return -1;
+        }
+        return tagOfInterest.id;
     }
-        else
-    {
-        telemetry.addLine("No tag snapshot available, it was never sighted during the init loop :(");
-        telemetry.update();
-    }
-}
 
     void tagToTelemetry(AprilTagDetection detection) {
         telemetry.addLine(String.format("\nDetected tag ID=%d", detection.id));
