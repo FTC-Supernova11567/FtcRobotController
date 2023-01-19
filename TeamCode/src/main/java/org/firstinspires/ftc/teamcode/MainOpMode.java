@@ -29,6 +29,8 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -51,6 +53,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
+@Config
 @TeleOp(name = "mainOpMode", group = "Iterative OpMode")
 public class MainOpMode extends OpMode {
     // Declare OpMode members.
@@ -59,28 +62,28 @@ public class MainOpMode extends OpMode {
     private DcMotor rightTop = null;
     private DcMotor leftBottom = null;
     private DcMotor rightBottom = null;
+    private DcMotor right_arm_motor = null;
+    private DcMotor left_arm_motor = null;
     private Servo rightServo = null;
     private Servo leftServo = null;
     private Gripper gripper = null;
-    private boolean isOpen = true;
     private Drive drive = null;
+    private Arm arm = null;
     private RevIMU imu;
 
-    private double speedMultiplayer = 2;
-    private final double minSpeed = 0.5;// The speed the robot is at while LT is pressed (in 1-0)
-    private final double maxSpeed = 1;
 
-<<<<<<< Updated upstream
-    /*
-     * Code to run ONCE when the driver hits INIT
-     */
-=======
+    private final double minSpeed = 1;
+    private final double maxSpeed = 2;// The speed the robot is at while LT is pressed
+
+    private double speedMultiplayer = 2;
+
     private static int OverrideTicksPerClick = 5;
 
->>>>>>> Stashed changes
     @Override
     public void init() {
-        telemetry.addData("Status", "Initialized");
+
+        FtcDashboard dashboard = FtcDashboard.getInstance();
+        telemetry = dashboard.getTelemetry();
 
         leftTop = hardwareMap.get(DcMotor.class, "leftTop");
         rightTop = hardwareMap.get(DcMotor.class, "rightTop");
@@ -88,16 +91,24 @@ public class MainOpMode extends OpMode {
         rightBottom = hardwareMap.get(DcMotor.class, "rightBottom");
         leftServo = hardwareMap.get(Servo.class, "leftServo");
         rightServo = hardwareMap.get(Servo.class, "rightServo");
+        left_arm_motor = hardwareMap.get(DcMotor.class, "LeftArmMotor");
+        right_arm_motor = hardwareMap.get(DcMotor.class, "RightArmMotor");
+
         imu = new RevIMU(hardwareMap);
         imu.init();
-        drive = new Drive(leftTop,rightTop,leftBottom,rightBottom);
+
+        drive = new Drive(leftTop, rightTop, leftBottom, rightBottom);
         gripper = new Gripper(rightServo, leftServo);
+        arm = new Arm(left_arm_motor, right_arm_motor);
 
         leftTop.setDirection(DcMotorSimple.Direction.REVERSE);
-        // Tell the driver that initialization is complete.
+        leftBottom.setDirection(DcMotorSimple.Direction.REVERSE);
+        right_arm_motor.setDirection(DcMotorSimple.Direction.REVERSE);
+        right_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        left_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+
         telemetry.addData("Status", "Initialized");
-        leftServo.setPosition(1);
-        rightServo.setPosition(1);
     }
 
     /*
@@ -113,6 +124,8 @@ public class MainOpMode extends OpMode {
     @Override
     public void start() {
         runtime.reset();
+        arm.setZeroPosition();
+
     }
 
     /*
@@ -120,31 +133,31 @@ public class MainOpMode extends OpMode {
      */
     @Override
     public void loop() {
-        // Choose to drive using either Tank Mode, or POV Mode
-        // Comment out the method that's not used.  The default below is POV.
-        if (gamepad1.left_trigger > 0.2){
+        if (gamepad1.left_trigger > 0.2) {
             speedMultiplayer = minSpeed;
-        }
-        else{
+        } else {
             speedMultiplayer = maxSpeed;
         }
 
-        if (gamepad1.b && isOpen){
-            gripper.Close();
-            if (gripper.IsClose())
-                isOpen = false;
-        }
-        else if (gamepad1.b && !isOpen){
+        if (gamepad2.right_trigger > 0.2) {
             gripper.Open();
-            if (gripper.IsOpen()) {
-                isOpen = true;
-            }
         }
-<<<<<<< Updated upstream
-        // POV Mode uses left stick to go forward, and right stick to turn.
-        // - This uses basic math to combine motions and is easier to drive straight.
-        drive.go(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, speedMultiplayer, imu.getRotation2d().getRadians());
-=======
+        if (gamepad2.left_trigger > 0.2) {
+            gripper.Close();
+        }
+
+        if (gamepad2.a){
+            arm.ground();
+        }
+        else if (gamepad2.b){
+            arm.bottom();
+        }
+        else if (gamepad2.y){
+            arm.middle();
+        }
+        else if (gamepad2.x){
+            arm.top();
+        }
         else if (gamepad2.dpad_down){
             arm.setPosition(arm.getArmPosition() - OverrideTicksPerClick);
         }
@@ -164,9 +177,9 @@ public class MainOpMode extends OpMode {
 
         arm.update();
         drive.go(gamepad1.left_stick_x, -gamepad1.left_stick_y, deadzone(gamepad1.right_stick_x), speedMultiplayer, -imu.getRotation2d().getRadians());
->>>>>>> Stashed changes
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());
+        telemetry.addData("Degrees", leftServo.getPosition());
         telemetry.addData("Status", "Heading: " + imu.getRotation2d().getDegrees());
     }
 
@@ -175,6 +188,13 @@ public class MainOpMode extends OpMode {
      */
     @Override
     public void stop() {
+    }
+
+    public double deadzone(double val) {
+        if (val < 0.05 && val > -0.05) {
+            return 0;
+        }
+        return val;
     }
 
 }
