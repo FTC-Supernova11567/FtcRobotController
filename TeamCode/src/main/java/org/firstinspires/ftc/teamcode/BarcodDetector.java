@@ -128,6 +128,7 @@ public class BarcodDetector {
         }
         telemetry.update();
 
+<<<<<<< Updated upstream:TeamCode/src/main/java/org/firstinspires/ftc/teamcode/BarcodDetector.java
         if(tagOfInterest !=null)
     {
         telemetry.addLine("Tag snapshot:\n");
@@ -138,6 +139,18 @@ public class BarcodDetector {
     {
         telemetry.addLine("No tag snapshot available, it was never sighted during the init loop :(");
         telemetry.update();
+=======
+    public int publishResult() {
+        if (tagOfInterest != null) {
+//            telemetry.addLine("Tag snapshot:\n");
+//            tagToTelemetry(tagOfInterest);
+            return tagOfInterest.id;
+        } else {
+//            telemetry.addLine("No tag snapshot available, it was never sighted during the init loop :(");
+            return -1;
+        }
+
+>>>>>>> Stashed changes:TeamCode/src/main/java/org/firstinspires/ftc/teamcode/AprilTagDetector.java
     }
 }
 

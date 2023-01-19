@@ -58,6 +58,15 @@ public class ArmTestOpMode extends OpMode {
     private final double minSpeed = 0.5;// The speed the robot is at while LT is pressed (in 1-0)
     private final double maxSpeed = 1;
 
+<<<<<<< Updated upstream
+=======
+    public static boolean killSwitch = true;
+    public static int position = 0;
+    public static double p = 0.04;
+    public static double i = 0;
+    public static double d = 0.0001;
+    public static double f = 0;
+>>>>>>> Stashed changes
     /*
      * Code to run ONCE when the driver hits INIT
      */

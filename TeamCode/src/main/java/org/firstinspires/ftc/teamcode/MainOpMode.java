@@ -70,9 +70,14 @@ public class MainOpMode extends OpMode {
     private final double minSpeed = 0.5;// The speed the robot is at while LT is pressed (in 1-0)
     private final double maxSpeed = 1;
 
+<<<<<<< Updated upstream
     /*
      * Code to run ONCE when the driver hits INIT
      */
+=======
+    private static int OverrideTicksPerClick = 5;
+
+>>>>>>> Stashed changes
     @Override
     public void init() {
         telemetry.addData("Status", "Initialized");
@@ -135,9 +140,31 @@ public class MainOpMode extends OpMode {
                 isOpen = true;
             }
         }
+<<<<<<< Updated upstream
         // POV Mode uses left stick to go forward, and right stick to turn.
         // - This uses basic math to combine motions and is easier to drive straight.
         drive.go(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, speedMultiplayer, imu.getRotation2d().getRadians());
+=======
+        else if (gamepad2.dpad_down){
+            arm.setPosition(arm.getArmPosition() - OverrideTicksPerClick);
+        }
+        else if (gamepad2.dpad_up){
+            arm.setPosition(arm.getArmPosition() + OverrideTicksPerClick);
+        }
+
+//        else if (gamepad2.dpad_up){
+//            right_arm_motor.setPower(overridePower);
+//            left_arm_motor.setPower(overridePower);
+//        }
+//
+//        else if (gamepad2.dpad_down){
+//            right_arm_motor.setPower(-overridePower);
+//            left_arm_motor.setPower(-overridePower);
+//        }
+
+        arm.update();
+        drive.go(gamepad1.left_stick_x, -gamepad1.left_stick_y, deadzone(gamepad1.right_stick_x), speedMultiplayer, -imu.getRotation2d().getRadians());
+>>>>>>> Stashed changes
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());
         telemetry.addData("Status", "Heading: " + imu.getRotation2d().getDegrees());
