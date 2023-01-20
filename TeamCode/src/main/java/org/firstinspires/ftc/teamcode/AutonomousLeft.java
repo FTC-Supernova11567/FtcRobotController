@@ -32,10 +32,10 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.constraints.TranslationalVelocityConstraint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -44,8 +44,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
-import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequenceBuilder;
-import org.intellij.lang.annotations.JdkConstants;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 
@@ -79,10 +77,9 @@ public class AutonomousLeft extends OpMode {
 
     private int id;
 
-    public static double ForwardDistance = 45.5;
-    public static double TurnDegrees = -45;
-    public static int TimeToStabilize = 2;
-    public static double AdjustForward = 1;
+    public static double TurnDegrees = -135;
+    public static double X = 36;
+    public static double Y = 12;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -119,7 +116,7 @@ public class AutonomousLeft extends OpMode {
      */
     @Override
     public void init_loop() {
-//        aprilTagDetector.detectTag();
+        aprilTagDetector.find_id();
     }
 
     /*
@@ -127,36 +124,53 @@ public class AutonomousLeft extends OpMode {
      */
     @Override
     public void start() {
-        gripper.Close();
-        waitSeconds(0.5);
+//        gripper.Close();
+//        tryWaitSeconds(0.5);
         runtime.reset();
         id = aprilTagDetector.publishResult();
-//        switch (id){
-//            case 1:
-//                drive.followTrajectory(trajectories.barcodCase1);
-//                break;
-//            case 2:
-//                drive.followTrajectory(trajectories.barcodCase2);
-//                break;
-//            case 3:
-//                drive.followTrajectory(trajectories.barcodCase3);
-//                break;
-//        }
-        TrajectorySequence blueLeft = drive.trajectorySequenceBuilder(new Pose2d())
+        drive.setPoseEstimate(new Pose2d(36, 60, Math.toRadians(-90)));
+        TrajectorySequence barcodCase1 = drive.trajectorySequenceBuilder(new Pose2d(36, 60, Math.toRadians(-90)))
                 .setVelConstraint(new TranslationalVelocityConstraint(15))
-                .addDisplacementMarker(() ->{
+                .forward(25)
+                .lineToLinearHeading(new Pose2d(60,34,-90))
+                .build();
+        TrajectorySequence barcodCase2 = drive.trajectorySequenceBuilder(new Pose2d(36, 60, Math.toRadians(-90)))
+                .setVelConstraint(new TranslationalVelocityConstraint(15))
+                .forward(25)
+                .build();
+        TrajectorySequence barcodCase3 = drive.trajectorySequenceBuilder(new Pose2d(36, 60, Math.toRadians(-90)))
+                .setVelConstraint(new TranslationalVelocityConstraint(15))
+                .forward(25)
+                .lineToLinearHeading(new Pose2d(12,34,-90))
+                .build();
+        switch (id){
+            case 1:
+                drive.followTrajectorySequence(barcodCase1);
+                break;
+            case 2:
+                drive.followTrajectorySequence(barcodCase2);
+                break;
+            case 3:
+                drive.followTrajectorySequence(barcodCase3);
+                break;
+        }
+        TrajectorySequence blueLeft = drive.trajectorySequenceBuilder(new Pose2d(36, 60, Math.toRadians(-90)))
+                .setVelConstraint(new TranslationalVelocityConstraint(15))
+                .lineToLinearHeading(new Pose2d(X, Y, Math.toRadians(TurnDegrees)))
+                .addTemporalMarker(5, () -> {
                     arm.setPosition(200);
                 })
-                .forward(ForwardDistance)
-                .waitSeconds(2)
-                .turn(Math.toRadians(TurnDegrees))
-                .waitSeconds(TimeToStabilize)
-//                .forward(AdjustForward)
-                .addTemporalMarker(18, () -> {
-                    gripper.Open();
-                })
+
+//                .forward(ForwardDistance)
+//                .waitSeconds(2)
+//                .turn(Math.toRadians(TurnDegrees))
+//                .waitSeconds(TimeToStabilize)
+////                .forward(AdjustForward)
+//                .addTemporalMarker(18, () -> {
+//                    gripper.Open();
+//                })
                 .build();
-        drive.followTrajectorySequenceAsync(blueLeft);
+//        drive.followTrajectorySequenceAsync(blueLeft);
     }
 
     @Override
@@ -174,7 +188,7 @@ public class AutonomousLeft extends OpMode {
     public void stop() {
     }
 
-    public void waitSeconds(double seconds) {
+    public void tryWaitSeconds(double seconds) {
         try {
             Thread.sleep((long) (1000 * seconds));
         } catch (InterruptedException e) {
