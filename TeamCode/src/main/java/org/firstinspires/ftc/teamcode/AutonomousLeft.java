@@ -90,10 +90,10 @@ public class AutonomousLeft extends OpMode {
         telemetry = dashboard.getTelemetry();
         telemetry.addData("Status", "Initialized");
         drive = new SampleMecanumDrive(hardwareMap);
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
-        aprilTagDetector = new AprilTagDetector(camera, hardwareMap, telemetry);
-        aprilTagDetector.init();
+//        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+//        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+//        aprilTagDetector = new AprilTagDetector(camera, hardwareMap, telemetry);
+//        aprilTagDetector.init();
         leftServo = hardwareMap.get(Servo.class, "leftServo");
         rightServo = hardwareMap.get(Servo.class, "rightServo");
         left_arm_motor = hardwareMap.get(DcMotor.class, "LeftArmMotor");
@@ -116,7 +116,7 @@ public class AutonomousLeft extends OpMode {
      */
     @Override
     public void init_loop() {
-        aprilTagDetector.find_id();
+//        aprilTagDetector.find_id();
     }
 
     /*
@@ -124,12 +124,12 @@ public class AutonomousLeft extends OpMode {
      */
     @Override
     public void start() {
-//        gripper.Close();
+        gripper.Close();
 //        tryWaitSeconds(0.5);
         runtime.reset();
-        id = aprilTagDetector.publishResult();
+//        id = aprilTagDetector.publishResult();
         drive.setPoseEstimate(new Pose2d(36, 60, Math.toRadians(-90)));
-        TrajectorySequence barcodCase1 = drive.trajectorySequenceBuilder(new Pose2d(36, 60, Math.toRadians(-90)))
+        /*TrajectorySequence barcodCase1 = drive.trajectorySequenceBuilder(new Pose2d(36, 60, Math.toRadians(-90)))
                 .setVelConstraint(new TranslationalVelocityConstraint(15))
                 .forward(25)
                 .lineToLinearHeading(new Pose2d(60,34,-90))
@@ -154,23 +154,18 @@ public class AutonomousLeft extends OpMode {
                 drive.followTrajectorySequence(barcodCase3);
                 break;
         }
+         */
         TrajectorySequence blueLeft = drive.trajectorySequenceBuilder(new Pose2d(36, 60, Math.toRadians(-90)))
                 .setVelConstraint(new TranslationalVelocityConstraint(15))
                 .lineToLinearHeading(new Pose2d(X, Y, Math.toRadians(TurnDegrees)))
                 .addTemporalMarker(5, () -> {
                     arm.setPosition(200);
                 })
-
-//                .forward(ForwardDistance)
-//                .waitSeconds(2)
-//                .turn(Math.toRadians(TurnDegrees))
-//                .waitSeconds(TimeToStabilize)
-////                .forward(AdjustForward)
-//                .addTemporalMarker(18, () -> {
-//                    gripper.Open();
-//                })
+                .addTemporalMarker(18, () -> {
+                    gripper.Open();
+                })
                 .build();
-//        drive.followTrajectorySequenceAsync(blueLeft);
+        drive.followTrajectorySequenceAsync(blueLeft);
     }
 
     @Override

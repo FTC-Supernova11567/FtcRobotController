@@ -11,7 +11,7 @@ public class Gripper {
     public Gripper(Servo servo, Servo servo2) {
         this.servo = servo;
         this.servo2 = servo2;
-        servo2.setDirection(Servo.Direction.FORWARD);
+        servo2.setDirection(Servo.Direction.REVERSE);
         servo.setDirection(Servo.Direction.FORWARD);
     }
 
