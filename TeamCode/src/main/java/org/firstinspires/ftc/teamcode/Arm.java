@@ -13,13 +13,14 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 public class Arm {
     private DcMotorEx leftArmMotor;
     private  DcMotorEx rightArmMotor;
-    public int[] ticksarray = {0 ,98 , 130, 200}; //Needs configuration according to encoder ticks
-    public int position;
-    public double holdingPower;
-    private int zero_position = 0;
-    //PID Var
 
-    PIDFController controller = new PIDFController(0.04, 0, 0.00008, 0);
+    private RobotConstants robotConstants;
+
+    public int set_point;
+    private int zero_position = 0;
+
+    //PID Var
+    PIDFController controller = new PIDFController(robotConstants.kp, robotConstants.ki, robotConstants.kd, robotConstants.kf);
 
 
     /**
@@ -27,7 +28,7 @@ public class Arm {
      * Needs to be called during Init() function
      */
     public void setZeroPosition() {
-        this.zero_position = rightArmMotor.getCurrentPosition();
+        this.zero_position = leftArmMotor.getCurrentPosition();
     }
 
     /**
@@ -35,7 +36,7 @@ public class Arm {
      * @return Arm position in ticks relative to the motor zeroPosition
      */
     public int getArmPosition(){
-        return rightArmMotor.getCurrentPosition() - this.zero_position;
+        return leftArmMotor.getCurrentPosition() - this.zero_position;
     }
 
     /**
@@ -51,16 +52,14 @@ public class Arm {
         this.leftArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.rightArmMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.setZeroPosition();
-//        controller.setTolerance(3);
     }
 
     /**
      * Function to set the arm position to the ground pole.
      * this function passes through the setposition function and uses the zeroPosition defined by the setzeroPosition function
      */
-    // Autonomous Functions
     public void ground() {
-        setPosition(zero_position);
+        setSet_point(zero_position);
     }
 
     /**
@@ -68,7 +67,7 @@ public class Arm {
      * this function passes through the setposition function
      */
     public void bottom() {
-        setPosition(ticksarray[1]);
+        setSet_point(robotConstants.ticksarray[1]);
     }
 
     /**
@@ -76,7 +75,7 @@ public class Arm {
      * this function passes through the setposition function
      */
     public void middle() {
-        setPosition(ticksarray[2]);
+        setSet_point(robotConstants.ticksarray[2]);
     }
 
     /**
@@ -84,15 +83,15 @@ public class Arm {
      * this function passes through the setposition function
      */
     public void top() {
-        setPosition(ticksarray[3]);
+        setSet_point(robotConstants.ticksarray[3]);
     }
 
     /**
      * Function to set the position of the arm in ticks
      * @param val Value to set the arm position to it(Measured in motor ticks)
      */
-    public void setPosition(int val){
-        position = val;
+    public void setSet_point(int val){
+        set_point = val;
     }
 
     /**
@@ -100,12 +99,12 @@ public class Arm {
      * and is setting the arm position according to the setposition function.
      */
     public void update(){
-            if (position == zero_position){
+            if (Math.abs(set_point-this.getArmPosition()) < 5 && set_point == zero_position){
                 rightArmMotor.setPower(0);
                 leftArmMotor.setPower(0);
             }
             else {
-                double power = controller.calculate(this.getArmPosition(), position);
+                double power = controller.calculate(this.getArmPosition(), set_point);
                 leftArmMotor.setPower(power);
                 rightArmMotor.setPower(power);
             }

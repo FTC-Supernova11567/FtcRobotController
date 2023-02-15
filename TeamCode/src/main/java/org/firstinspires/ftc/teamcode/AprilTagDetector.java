@@ -67,7 +67,6 @@ public class AprilTagDetector {
 
     public void find_id() {
         ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
-
         if (currentDetections.size() != 0) {
             boolean tagFound = false;
 
@@ -113,11 +112,11 @@ public class AprilTagDetector {
 
     public int publishResult() {
         if (tagOfInterest != null) {
-//            telemetry.addLine("Tag snapshot:\n");
-//            tagToTelemetry(tagOfInterest);
+            telemetry.addLine("Tag snapshot:\n");
+            tagToTelemetry(tagOfInterest);
             return tagOfInterest.id;
         } else {
-//            telemetry.addLine("No tag snapshot available, it was never sighted during the init loop :(");
+            telemetry.addLine("No tag snapshot available, it was never sighted during the init loop :(");
             return -1;
         }
 

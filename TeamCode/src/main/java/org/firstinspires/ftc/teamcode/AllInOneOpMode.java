@@ -31,24 +31,13 @@ package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.acmerobotics.roadrunner.trajectory.constraints.TranslationalVelocityConstraint;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -63,61 +52,104 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
+
 @Config
-@Autonomous(name = "FieldNavigationTestOpMode", group = "Auto")
-public class VuforiaFieldNavigation extends OpMode {
+@TeleOp(name = "One Controller OpMode", group = "Iterative OpMode")
+public class AllInOneOpMode extends OpMode {
+    // Declare OpMode members.
+    private final ElapsedTime runtime = new ElapsedTime();
+    private Robot robot;
+    private RobotConstants robotConstants;
 
-    /*
-     * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
-     * 'parameters.vuforiaLicenseKey' is initialized is for illustration only, and will not function.
-     * A Vuforia 'Development' license key, can be obtained free of charge from the Vuforia developer
-     * web site at https://developer.vuforia.com/license-manager.
-     *
-     * Vuforia license keys are always 380 characters long, and look as if they contain mostly
-     * random data. As an example, here is a example of a fragment of a valid key:
-     *      ... yIgIzTqZ4mWjk9wd3cZO9T1axEqzuhxoGlfOOI2dRzKS4T0hQ8kT ...
-     * Once you've obtained a license key, copy the string from the Vuforia web site
-     * and paste it in to your code on the next line, between the double quotes.
-     */
-    private static final String VUFORIA_KEY =
-            " --- YOUR NEW VUFORIA KEY GOES HERE  --- ";
-
-    // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
-    // We will define some constants and conversions here
-    private static final float mmPerInch        = 25.4f;
-    private static final float mmTargetHeight   = 6 * mmPerInch;          // the height of the center of the target image above the floor
-    private static final float halfField        = 72 * mmPerInch;
-    private static final float halfTile         = 12 * mmPerInch;
-    private static final float oneAndHalfTile   = 36 * mmPerInch;
-
-    // Class Members
-    private OpenGLMatrix lastLocation   = null;
-    private VuforiaLocalizer vuforia    = null;
-    private VuforiaTrackables targets   = null ;
-    private WebcamName webcamName       = null;
-
-    private boolean targetVisible       = false;
+    private double speedMultiplayer = 2;
 
     @Override
     public void init() {
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry = dashboard.getTelemetry();
+        robot = new Robot(hardwareMap, false);
+
         telemetry.addData("Status", "Initialized");
     }
 
+    /*
+     * Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
+     */
     @Override
     public void init_loop() {
     }
 
+    /*
+     * Code to run ONCE when the driver hits PLAY
+     */
     @Override
     public void start() {
+        runtime.reset();
+        robot.arm.setZeroPosition();
     }
 
+    /*
+     * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
+     */
     @Override
     public void loop() {
+
+        if (gamepad1.left_trigger > 0.2) {
+            speedMultiplayer = robotConstants.minSpeed;
+        } else {
+            speedMultiplayer = robotConstants.maxSpeed;
+        }
+
+        if (gamepad1.right_bumper) {
+            robot.gripper.Close();
+        }
+        else if (gamepad1.left_bumper) {
+            robot.gripper.Open();
+        }
+
+        if (gamepad1.a){
+            robot.arm.ground();
+        }
+        else if (gamepad1.b){
+            robot.arm.bottom();
+        }
+        else if (gamepad1.y){
+            robot.arm.middle();
+        }
+        else if (gamepad1.x){
+            robot.arm.top();
+        }
+        else if (gamepad1.dpad_down){
+            robot.arm.setSet_point(robot.arm.getArmPosition() + robotConstants.OverrideTicksPerClick);
+        }
+        else if (gamepad1.dpad_up){
+            robot.arm.setSet_point(robot.arm.getArmPosition() - robotConstants.OverrideTicksPerClick);
+        }
+
+        if (gamepad1.back){
+            robot.imu.reset();
+        }
+
+        robot.arm.update();
+        robot.drive.go(gamepad1.left_stick_x, -gamepad1.left_stick_y, deadzone(gamepad1.right_stick_x), speedMultiplayer, -robot.imu.getRotation2d().getRadians());
+        // Show the elapsed game time and wheel power.
+        telemetry.addData("Status", "Run Time: " + runtime.toString());
+        telemetry.addData("Degrees", robot.leftServo.getPosition());
+        telemetry.addData("Status", "Heading: " + robot.imu.getRotation2d().getDegrees());
     }
 
+    /*
+     * Code to run ONCE after the driver hits STOP
+     */
     @Override
     public void stop() {
     }
+
+    public double deadzone(double val) {
+        if (val < 0.05 && val > -0.05) {
+            return 0;
+        }
+        return val;
+    }
+
 }

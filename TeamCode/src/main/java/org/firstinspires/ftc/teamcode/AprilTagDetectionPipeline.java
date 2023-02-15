@@ -104,7 +104,9 @@ class AprilTagDetectionPipeline extends OpenCvPipeline
     {
         // Convert to greyscale
         Imgproc.cvtColor(input, grey, Imgproc.COLOR_RGBA2GRAY);
-
+        //Increse camera constrast by doing:
+        //
+        input.convertTo(input, -1, 60);
         synchronized (decimationSync)
         {
             if(needToSetDecimation)

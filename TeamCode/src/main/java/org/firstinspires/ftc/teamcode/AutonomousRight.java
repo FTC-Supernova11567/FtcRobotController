@@ -62,8 +62,8 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 @Config
-@Autonomous(name = "AutonomousLeft", group = "")
-public class AutonomousLeft extends OpMode {
+@Autonomous(name = "AutonomousRight", group = "")
+public class AutonomousRight extends OpMode {
     private final ElapsedTime runtime = new ElapsedTime();
 
     private DcMotor right_arm_motor = null;
@@ -78,12 +78,11 @@ public class AutonomousLeft extends OpMode {
 
     private int id;
 
-    public static int XSartingPoint = 36;
-    public static double TurnDegrees = -122;
-    public static double X = 33;
-    public static double Y = 9.5;
+    public static double TurnDegrees = -48;
+    public static double X = 29.5;
+    public static double Y = 9;
     public static double GripperTime = 8;
-    public static int ArmTicks = -840;
+
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -131,15 +130,15 @@ public class AutonomousLeft extends OpMode {
     @Override
     public void start() {
 //        gripper.Close();
-        arm.setZeroPosition();
         runtime.reset();
+        arm.setZeroPosition();
         gripper.Close();
         tryWaitSeconds(0.5);
-        arm.setSet_point(ArmTicks);
+        arm.setSet_point(-780);
         tryWaitSeconds(2);
         id = aprilTagDetector.publishResult();
         Trajectory barcodeTraj;
-        drive.setPoseEstimate(new Pose2d(XSartingPoint, 60, Math.toRadians(-90)));
+        drive.setPoseEstimate(new Pose2d(39, 60, Math.toRadians(-90)));
 
 
 
@@ -166,9 +165,9 @@ public class AutonomousLeft extends OpMode {
                 break;
         }
 
-        TrajectorySequence blueLeft = drive.trajectorySequenceBuilder(new Pose2d(XSartingPoint, 60, Math.toRadians(-90)))
+        TrajectorySequence blueLeft = drive.trajectorySequenceBuilder(new Pose2d(39, 60, Math.toRadians(-90)))
                 .setVelConstraint(new TranslationalVelocityConstraint(15))
-                .lineToLinearHeading(new Pose2d(36, 60 ,Math.toRadians(-90)))
+                .lineToLinearHeading(new Pose2d(35, 60 ,Math.toRadians(-90)))
                 .lineToLinearHeading(new Pose2d(X, Y, Math.toRadians(TurnDegrees)))
                 .waitSeconds(2)
                 .addTemporalMarker(5, () -> {

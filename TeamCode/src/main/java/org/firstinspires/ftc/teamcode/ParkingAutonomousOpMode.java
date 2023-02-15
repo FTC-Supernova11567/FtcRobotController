@@ -31,12 +31,21 @@ package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.constraints.TranslationalVelocityConstraint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -52,29 +61,26 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 @Config
-@Autonomous(name = "Arm Test", group = "Iterative OpMode")
-public class ArmTestOpMode extends OpMode {
-    // Declare OpMode members.
+@Autonomous(name = "ParkingOpMode", group = "")
+public class ParkingAutonomousOpMode extends OpMode {
     private final ElapsedTime runtime = new ElapsedTime();
-    private DcMotor left_arm_motor = null;
+
     private DcMotor right_arm_motor = null;
+    private DcMotor left_arm_motor = null;
     private Servo rightServo = null;
     private Servo leftServo = null;
 
+    private Gripper gripper = null;
     private Arm arm = null;
+    private SampleMecanumDrive drive = null;
+    private AprilTagDetector aprilTagDetector = null;
 
-    public static boolean killSwitch = true;
-    public static boolean close = true;
-    public static int position = 0;
-    public static double p = 0.0035;
-    public static double i = 0;
-    public static double d = 0;
-    public static double f = 0;
+    private int id;
 
-    public static double rightServoOpenAngle = 0.9;
-    public static double leftServoOpenAngle = 0;
-    public static double rightServoCloseAngle = 0.6;
-    public static double leftServoCloseAngle = 0.4;
+    public static double TurnDegrees = -122;
+    public static double X = 36;
+    public static double Y = 14;
+
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -83,17 +89,27 @@ public class ArmTestOpMode extends OpMode {
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry = dashboard.getTelemetry();
         telemetry.addData("Status", "Initialized");
+        drive = new SampleMecanumDrive(hardwareMap);
+
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+        aprilTagDetector = new AprilTagDetector(camera, hardwareMap, telemetry);
+        aprilTagDetector.init();
+        leftServo = hardwareMap.get(Servo.class, "leftServo");
+        rightServo = hardwareMap.get(Servo.class, "rightServo");
         left_arm_motor = hardwareMap.get(DcMotor.class, "LeftArmMotor");
         right_arm_motor = hardwareMap.get(DcMotor.class, "RightArmMotor");
-        rightServo = hardwareMap.get(Servo.class, "rightServo");
-        leftServo = hardwareMap.get(Servo.class, "leftServo");
-//        leftServo.setDirection(Servo.Direction.REVERSE);
-        // Tell the driver that initialization is complete.
+
         right_arm_motor.setDirection(DcMotorSimple.Direction.REVERSE);
         right_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         left_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        gripper = new Gripper(rightServo, leftServo);
         arm = new Arm(left_arm_motor, right_arm_motor);
 
+        arm.setZeroPosition();
+//        arm.controller.setTolerance(7);
+        telemetry.addData("Status", "Initialized");
     }
 
     /*
@@ -101,6 +117,7 @@ public class ArmTestOpMode extends OpMode {
      */
     @Override
     public void init_loop() {
+        aprilTagDetector.find_id();
     }
 
     /*
@@ -108,39 +125,45 @@ public class ArmTestOpMode extends OpMode {
      */
     @Override
     public void start() {
+//        gripper.Close();
         runtime.reset();
-        arm.setZeroPosition();
+        id = aprilTagDetector.publishResult();
+        drive.setPoseEstimate(new Pose2d(39, 60, Math.toRadians(-90)));
+        TrajectorySequence barcodCase1 = drive.trajectorySequenceBuilder(new Pose2d(34, 60, Math.toRadians(-90)))
+                .setVelConstraint(new TranslationalVelocityConstraint(15))
+                .forward(26)
+                .lineToConstantHeading(new Vector2d(62,34))
+                .build();
+        TrajectorySequence barcodCase2 = drive.trajectorySequenceBuilder(new Pose2d(34, 60, Math.toRadians(-90)))
+                .setVelConstraint(new TranslationalVelocityConstraint(15))
+                .forward(30)
+                .build();
+        TrajectorySequence barcodCase3 = drive.trajectorySequenceBuilder(new Pose2d(34, 60, Math.toRadians(-90)))
+                .setVelConstraint(new TranslationalVelocityConstraint(15))
+                .forward(26)
+                .lineToConstantHeading(new Vector2d(10,34))
+                .build();
+        switch (id){
+            case 1:
+                drive.followTrajectorySequenceAsync(barcodCase1);
+                break;
+            case 2:
+                drive.followTrajectorySequenceAsync(barcodCase2);
+                break;
+            case 3:
+                drive.followTrajectorySequenceAsync(barcodCase3);
+                break;
+            default:
+                drive.followTrajectorySequenceAsync(barcodCase2);
+        }
     }
 
-    /*
-     * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
-     */
     @Override
     public void loop() {
-        telemetry.addData("Arm Position", arm.getArmPosition());
-        telemetry.addData("SetPoint", position);
-        telemetry.addData("right Encoder:", right_arm_motor.getCurrentPosition());
-        telemetry.addData("LeftMotor Encoder:", left_arm_motor.getCurrentPosition());
-
-        arm.controller.setPIDF(p,i,d,f);
-        arm.setSet_point(position);
-
-        if (close){
-            rightServo.setPosition(rightServoCloseAngle);
-            leftServo.setPosition(leftServoCloseAngle);
-        }
-        else if (!close){
-            rightServo.setPosition(rightServoOpenAngle);
-            leftServo.setPosition(leftServoOpenAngle);
-        }
-
-        if (!killSwitch) {
-            arm.update();
-            //arm.boomBoomControl(position);
-        } else {
-            right_arm_motor.setPower(0.0);
-            left_arm_motor.setPower(0.0);
-        }
+        drive.update();
+        arm.update();
+        telemetry.addData("arm_setpoint", arm.set_point);
+        telemetry.addData("arm_position", left_arm_motor.getPower());
     }
 
     /*
@@ -148,5 +171,13 @@ public class ArmTestOpMode extends OpMode {
      */
     @Override
     public void stop() {
+    }
+
+    public void tryWaitSeconds(double seconds) {
+        try {
+            Thread.sleep((long) (1000 * seconds));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

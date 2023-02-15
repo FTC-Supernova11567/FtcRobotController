@@ -107,7 +107,7 @@ public class MainOpMode extends OpMode {
         right_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         left_arm_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-
+        gripper.Open();
         telemetry.addData("Status", "Initialized");
     }
 
@@ -133,6 +133,7 @@ public class MainOpMode extends OpMode {
      */
     @Override
     public void loop() {
+
         if (gamepad1.left_trigger > 0.2) {
             speedMultiplayer = minSpeed;
         } else {
@@ -140,10 +141,10 @@ public class MainOpMode extends OpMode {
         }
 
         if (gamepad2.right_trigger > 0.2) {
-            gripper.Open();
-        }
-        if (gamepad2.left_trigger > 0.2) {
             gripper.Close();
+        }
+        else if (gamepad2.left_trigger > 0.2) {
+            gripper.Open();
         }
 
         if (gamepad2.a){
@@ -159,21 +160,15 @@ public class MainOpMode extends OpMode {
             arm.top();
         }
         else if (gamepad2.dpad_down){
-            arm.setPosition(arm.getArmPosition() - OverrideTicksPerClick);
+            arm.setSet_point(arm.getArmPosition() - OverrideTicksPerClick);
         }
         else if (gamepad2.dpad_up){
-            arm.setPosition(arm.getArmPosition() + OverrideTicksPerClick);
+            arm.setSet_point(arm.getArmPosition() + OverrideTicksPerClick);
         }
 
-//        else if (gamepad2.dpad_up){
-//            right_arm_motor.setPower(overridePower);
-//            left_arm_motor.setPower(overridePower);
-//        }
-//
-//        else if (gamepad2.dpad_down){
-//            right_arm_motor.setPower(-overridePower);
-//            left_arm_motor.setPower(-overridePower);
-//        }
+        if (gamepad1.back){
+            imu.reset();
+        }
 
         arm.update();
         drive.go(gamepad1.left_stick_x, -gamepad1.left_stick_y, deadzone(gamepad1.right_stick_x), speedMultiplayer, -imu.getRotation2d().getRadians());
