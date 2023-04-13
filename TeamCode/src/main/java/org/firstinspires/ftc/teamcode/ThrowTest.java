@@ -29,18 +29,14 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.arcrobotics.ftclib.geometry.Translation2d;
-import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.arcrobotics.ftclib.kinematics.wpilibkinematics.MecanumDriveKinematics;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.arcrobotics.ftclib.drivebase.MecanumDrive;
-import com.arcrobotics.ftclib.hardware.RevIMU;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -55,42 +51,34 @@ import com.arcrobotics.ftclib.hardware.RevIMU;
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
-@Disabled
-@TeleOp(name = "drive", group = "Iterative OpMode")
-public class DriveOpMode extends OpMode {
+@Config
+@Autonomous(name = "Throw Test", group = "Iterative OpMode")
+public class ThrowTest extends OpMode {
     // Declare OpMode members.
     private final ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftTop = null;
-    private DcMotor rightTop = null;
-    private DcMotor leftBottom = null;
-    private DcMotor rightBottom = null;
     private DcMotor throwMotor = null;
-    private Drive drive = null;
-    private RevIMU imu;
 
-    private double speedMultiplayer = 2;
-    private final double minSpeed = 0.5;// The speed the robot is at while LT is pressed (in 1-0)
-    private final double maxSpeed = 1;
 
+    private ConeThrowing coneThrowing = null;
+
+    public static boolean killSwitch = true;
+    public static int position = 0;
+    public static double power = -0.8;
+    public static double p = 0.0035;
+    public static double i = 0;
+    public static double d = 0;
+    public static double f = 0;
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
     public void init() {
+        FtcDashboard dashboard = FtcDashboard.getInstance();
+        telemetry = dashboard.getTelemetry();
         telemetry.addData("Status", "Initialized");
-
-        leftTop = hardwareMap.get(DcMotor.class, "leftTop");
-        rightTop = hardwareMap.get(DcMotor.class, "rightTop");
-        leftBottom = hardwareMap.get(DcMotor.class, "leftBottom");
-        rightBottom = hardwareMap.get(DcMotor.class, "rightBottom");
         throwMotor = hardwareMap.get(DcMotor.class, "throwMotor");
-        imu = new RevIMU(hardwareMap);
-        imu.init();
-        drive = new Drive(leftTop,rightTop,leftBottom,rightBottom);
-
-        leftTop.setDirection(DcMotorSimple.Direction.REVERSE);
-        // Tell the driver that initialization is complete.
-        telemetry.addData("Status", "Initialized");
+        throwMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        coneThrowing = new ConeThrowing(throwMotor);
     }
 
     /*
@@ -106,6 +94,7 @@ public class DriveOpMode extends OpMode {
     @Override
     public void start() {
         runtime.reset();
+        coneThrowing.setZeroPosition();
     }
 
     /*
@@ -113,30 +102,20 @@ public class DriveOpMode extends OpMode {
      */
     @Override
     public void loop() {
-        // Choose to drive using either Tank Mode, or POV Mode
-        // Comment out the method that's not used.  The default below is POV.
-        if (gamepad1.left_trigger > 0.2){
-            speedMultiplayer = minSpeed;
-        }
-        else{
-            speedMultiplayer = maxSpeed;
-        }
+        telemetry.addData("Arm Position", coneThrowing.getArmPosition());
+        telemetry.addData("SetPoint", position);
+        telemetry.addData("Encoder Pos:", throwMotor.getCurrentPosition());
 
-        // POV Mode uses left stick to go forward, and right stick to turn.
-        // - This uses basic math to combine motions and is easier to drive straight.
-        drive.go(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, speedMultiplayer, imu.getRotation2d().getRadians());
-        // Show the elapsed game time and wheel power.
-        if (gamepad1.dpad_up){
-            throwMotor.setPower(1);
+        coneThrowing.setArmPower(power);
+        coneThrowing.controller.setPIDF(p, i, d, f);
+        coneThrowing.setSet_point(position);
+
+        if (!killSwitch) {
+            coneThrowing.update();
+            //arm.boomBoomControl(position);
+        } else {
+            throwMotor.setPower(0.0);
         }
-        else if (gamepad1.dpad_down){
-            throwMotor.setPower(-1);
-        }
-        else{
-            throwMotor.setPower(0);
-        }
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("Status", "Heading: " + imu.getRotation2d().getDegrees());
     }
 
     /*
@@ -145,5 +124,4 @@ public class DriveOpMode extends OpMode {
     @Override
     public void stop() {
     }
-
 }
